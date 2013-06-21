@@ -93,6 +93,7 @@ Func _reconnect($env)
 	Send("{HOME}")
 ;	_clickImage($imgPath & "\" & "device" & "\" & "screen_lock.png", $aRect)
 ;	_clickImage($imgPath & "\" & "device" & "\" & "screen_lock_hover.png", $aRect)
+	Sleep(1000)
 EndFunc
 
 
@@ -202,8 +203,10 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 
 	Local $capturePath = AssocArrayGet($env, "app.capture.path") & "\" & @YEAR & @MON & @MDAY & "\" & $app_key
 	Local $captureTitle = AssocArrayGet($env, "app.detecting.on")
+	Local $dbName = AssocArrayGet($env, "app.db.name")
+	Local $tableName = AssocArrayGet($env, "app.db.table")
 	_CaptureWindow("", $capturePath)
-	Local $nDbResult = _AddRecord($hConn, "autoit_test.test_loading_log", $aFields, $aValues)
+	Local $nDbResult = _AddRecord($hConn, $dbName & "." & $tableName, $aFields, $aValues)
 
 	_terminateApp()
 
@@ -236,7 +239,7 @@ Func _clickImage($image, $aRect)
 	Local $result
 	Local $startTime
 	Local $endTime
-	Local $tolerance = 70
+	Local $tolerance = 80
 	Local $x = 0
 	Local $y = 0
 
