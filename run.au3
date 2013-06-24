@@ -137,11 +137,13 @@ Func _WaitForImagesSearchWithoutSleep($findImage, $waitSecs, $aRect, ByRef $x, B
 		for $i = 1 to $findImage[0]
 		    $result = _ImageSearchArea($findImage[$i], 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $tolerance, $HBMP)
 			$endTime = TimerDiff($startTime)
-		    if $result > 0 Then
+
+			If $result > 0 Then
 			    return $i
 		    EndIf
 		Next
 	WEnd
+
 	return 0
 EndFunc
 
@@ -247,8 +249,8 @@ Func _networkStatus($env)
 	Local $aRect = WinGetPos($hWnd)
 
 
-	Local $result = _WaitForImagesSearchWithoutSleep($imgArray, 15, $aRect, $x, $y, 20, $startTime, $endTime, 0)
-
+	Local $result = _WaitForImagesSearchWithoutSleep($imgArray, 15000, $aRect, $x, $y, 75, $startTime, $endTime, 0)
+	_Log("" & $result)
 	Select
 		Case $result == "0"
 			Return ""
