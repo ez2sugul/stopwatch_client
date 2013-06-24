@@ -10,12 +10,14 @@ Func GetSQLCreateTable($sTable)
 	  "`startTime` int(11) DEFAULT NULL COMMENT '측정을 시작한 ms'," & _
 	  "`durationTime` int(11) DEFAULT NULL COMMENT '측정에 소요된 ms'," & _
 	  "`isError` tinyint(1) DEFAULT NULL COMMENT '측정 시 오류 유무'," & _
+	  "`network` varchar(10) DEFAULT NULL COMMENT '측정 시 네크 상태'," & _
 	  "PRIMARY KEY (`id`)," & _
 	  "UNIQUE KEY `serviceName_2` (`serviceName`, `actionName`, `deviceName`, `actionDate`), " & _
 	  "KEY `actionDate` (`actionDate`)," & _
 	  "KEY `serviceName` (`serviceName`)," & _
 	  "KEY `isError` (`isError`)," & _
-	  "KEY `actionName` (`actionName`)" & _
+	  "KEY `actionName` (`actionName`)," & _
+	  "KEY `network` (`network`)" & _
 	") ENGINE=InnoDB DEFAULT CHARSET=utf8;"
 
 	return $sQryCreateTable

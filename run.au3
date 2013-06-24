@@ -129,6 +129,21 @@ Func _WaitForImageSearchWithoutSleep($findImage, $waitSecs, $aRect, ByRef $x, By
 	Return 0
 EndFunc   ;==>_WaitForImageSearchWithoutSleep
 
+Func _WaitForImagesSearchWithoutSleep($findImage, $waitSecs, $aRect, ByRef $x, ByRef $y, $tolerance, ByRef $startTime, ByRef $endTime, $HBMP = 0)
+	$startTime = TimerInit()
+	$endTime = TimerDiff($startTime)
+
+	While $endTime < $waitSecs
+		for $i = 1 to $findImage[0]
+		    $result = _ImageSearchArea($findImage[$i], 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $tolerance, $HBMP)
+			$endTime = TimerDiff($startTime)
+		    if $result > 0 Then
+			    return $i
+		    EndIf
+		Next
+	WEnd
+	return 0
+EndFunc
 
 Func _get_apps_to_go($env)
 	Local $value = AssocArrayGet($env, "app.list")
@@ -159,8 +174,8 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	Local $imgPath = @ScriptDir & "\img"
 
 	; database fields
-	Local $aFields[8] = ["serviceName", "deviceName", "actionName", "actionDate", "startTime", "durationTime", "isError", ""]
-	Local $aValues[8] = [$app_key, AssocArrayGet($env, "app.target.device"), "", @YEAR & @MON & @MDAY & @HOUR & @MIN & @SEC, "", "", "", ""]
+	Local $aFields[9] = ["serviceName", "deviceName", "actionName", "actionDate", "startTime", "durationTime", "isError", "network", ""]
+	Local $aValues[9] = [$app_key, AssocArrayGet($env, "app.target.device"), "", @YEAR & @MON & @MDAY & @HOUR & @MIN & @SEC, "", "", "", "",""]
 
 	; tap on apps image
 	_clickImage($imgPath & "\" & "device" & "\" & "apps.png", $aRect)
@@ -199,6 +214,10 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 			EndIf
 	EndSelect
 
+	Local $network = _networkStatus($env)
+	$aValues[7] = $network
+	ConsoleWrite($network & @CRLF)
+
 	_Log($app_key & " " & $app_type & " " & $result & " " & $endTime)
 
 	Local $capturePath = AssocArrayGet($env, "app.capture.path") & "\" & @YEAR & @MON & @MDAY & "\" & $app_key
@@ -212,6 +231,36 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 
 	Return 1
 EndFunc   ;==>_start_app
+
+Func _networkStatus($env)
+	Local $result
+	Local $startTime
+	Local $endTime
+	Local $tolerance = 80
+	Local $x = 0
+	Local $y = 0
+	Local $imgArray[3]
+	$imgArray[0] = 2
+	$imgArray[1] = @ScriptDir & "\img\device\" & "lte.png"
+	$imgArray[2] = @ScriptDir & "\img\device\" & "3g.png"
+
+	Local $hWnd = WinGetHandle(AssocArrayGet($env, "app.detecting.on"))
+	Local $aRect = WinGetPos($hWnd)
+
+
+	Local $result = _WaitForImagesSearchWithoutSleep($imgArray, 1, $aRect, $x, $y, 20, $startTime, $endTime, 0)
+
+	Select
+		Case $result == "0"
+			Return ""
+		Case $result == "1"
+			Return "lte"
+		Case $result == "2"
+			Return "3g"
+	EndSelect
+
+	Return ""
+EndFunc
 
 Func _noticeOperator($env, $wholeCount, $errorCount)
 	If @HOUR < 9 And @HOUR > 18 And @WDAY > 1 And @WDAY < 7 Then
