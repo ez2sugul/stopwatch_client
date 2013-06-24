@@ -217,7 +217,7 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	Local $network = _networkStatus($env)
 	$aValues[7] = $network
 
-	_Log($app_key & " " & $app_type & " " & $result & " " & $endTime & "" & $network)
+	_Log($app_key & " " & $app_type & " " & $result & " " & $endTime & " " & $network)
 
 	Local $capturePath = AssocArrayGet($env, "app.capture.path") & "\" & @YEAR & @MON & @MDAY & "\" & $app_key
 	Local $captureTitle = AssocArrayGet($env, "app.detecting.on")
@@ -247,7 +247,7 @@ Func _networkStatus($env)
 	Local $aRect = WinGetPos($hWnd)
 
 
-	Local $result = _WaitForImagesSearchWithoutSleep($imgArray, 1, $aRect, $x, $y, 20, $startTime, $endTime, 0)
+	Local $result = _WaitForImagesSearchWithoutSleep($imgArray, 15, $aRect, $x, $y, 20, $startTime, $endTime, 0)
 
 	Select
 		Case $result == "0"
