@@ -216,9 +216,8 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 
 	Local $network = _networkStatus($env)
 	$aValues[7] = $network
-	ConsoleWrite($network & @CRLF)
 
-	_Log($app_key & " " & $app_type & " " & $result & " " & $endTime)
+	_Log($app_key & " " & $app_type & " " & $result & " " & $endTime & "" & $network)
 
 	Local $capturePath = AssocArrayGet($env, "app.capture.path") & "\" & @YEAR & @MON & @MDAY & "\" & $app_key
 	Local $captureTitle = AssocArrayGet($env, "app.detecting.on")
