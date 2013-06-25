@@ -2,6 +2,7 @@
 #include "ImageSearch.au3"
 #include "DbConn.au3"
 #include <ScreenCapture.au3>
+#include "HttpRequest.au3"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Func main()
@@ -177,7 +178,7 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 
 	; database fields
 	Local $aFields[9] = ["serviceName", "deviceName", "actionName", "actionDate", "startTime", "durationTime", "isError", "network", ""]
-	Local $aValues[9] = [$app_key, AssocArrayGet($env, "app.target.device"), "", @YEAR & @MON & @MDAY & @HOUR & @MIN & @SEC, "", "", "", "",""]
+	Local $aValues[UBound($aFields)] = [$app_key, AssocArrayGet($env, "app.target.device"), "", @YEAR & @MON & @MDAY & @HOUR & @MIN & @SEC, "", "", "", "",""]
 
 	; tap on apps image
 	_clickImage($imgPath & "\" & "device" & "\" & "apps.png", $aRect)
@@ -227,6 +228,18 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	Local $tableName = AssocArrayGet($env, "app.db.table")
 	_CaptureWindow("", $capturePath)
 	Local $nDbResult = _AddRecord($hConn, $dbName & "." & $tableName, $aFields, $aValues)
+	
+	Local $host = "http://stopwatch.skplanet.com"
+   Local $path = "/end-to-end-performance/insert"
+   Local $query[UBound($aFields)]
+   For $i = 0 To UBound($aFields) - 1
+	  $query[$i] = $aFields[$i] & "=" & $aValues[$i]
+   Next
+   
+   Local $queryString = ""
+   Local $http
+   HttpRequest("POST", $host, $path, $query, $http)
+   _Log($http.ResponseText)
 
 	_terminateApp()
 
