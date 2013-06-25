@@ -15,9 +15,11 @@ Func HttpRequest($method, $host, $path, $query, ByRef $http)
 		 $queryString = $queryString & "&" & $str
 	  EndIf
    Next
+   ConsoleWrite($host & $path & " " & $queryString & @CRLF)
    $http = ObjCreate("winhttp.winhttprequest.5.1")
    
    If @error = 1 Then
+	  ConsoleWrite(@errors & @CRLF)
 	  Return -1
    EndIf
    

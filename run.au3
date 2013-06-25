@@ -84,7 +84,7 @@ Func _reconnect($env)
 	_Log("trying reconnect")
 	Local $hWnd = WinGetHandle(AssocArrayGet($env, "app.detecting.on"))
 	Local $aRect = WinGetPos($hWnd)
-	Local $imgPath = @ScriptDir & "\img"
+	Local $imgPath = @ScriptDir & AssocArrayGet($env, "app.img.path")
 
 	_clickImage($imgPath & "\" & "device" & "\" & "reconnect_mobizen.png", $aRect)
 	Sleep(1000 * 30)
@@ -172,7 +172,7 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	Local $endTime = -1
 	Local $hWnd = WinGetHandle(AssocArrayGet($env, "app.detecting.on"))
 	Local $aRect = WinGetPos($hWnd)
-	Local $imgPath = @ScriptDir & "\img"
+	Local $imgPath = @ScriptDir & AssocArrayGet($env, "app.img.path")
 
 	; database fields
 	Local $aFields[9] = ["serviceName", "deviceName", "actionName", "actionDate", "startTime", "durationTime", "isError", "network", ""]
@@ -227,17 +227,19 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	_CaptureWindow("", $capturePath, $aValues[6])
 	Local $nDbResult = _AddRecord($hConn, $dbName & "." & $tableName, $aFields, $aValues)
 	
-	Local $host = "http://" & AssocArray($env, "app.web.host")
-   Local $path = AssocArray($env, "app.web.path")
-   Local $query[UBound($aFields)]
-   For $i = 0 To UBound($aFields) - 1
-	  $query[$i] = $aFields[$i] & "=" & $aValues[$i]
+	Local $host = AssocArrayGet($env, "app.web.host")
+   Local $path = AssocArrayGet($env, "app.web.path")
+   Local $query[UBound($aFields) - 1]
+   For $i = 0 To UBound($aFields) - 2
+	  $query[$i] = $aFields[$i] & "=" & UrlEncode($aValues[$i])
    Next
    
    Local $queryString = ""
    Local $http
-   HttpRequest("POST", $host, $path, $query, $http)
+   Local $result = HttpRequest("POST", $host, $path, $query, $http)
+   _Log("http request : " & $result)
    _Log($http.ResponseText)
+   _Log($http.Status)
 
 	_terminateApp()
 
@@ -252,15 +254,16 @@ Func _networkStatus($env)
 	Local $x = 0
 	Local $y = 0
 	Local $imgArray[3]
-	$imgArray[0] = 2
-	$imgArray[1] = @ScriptDir & "\img\device\" & "lte.png"
-	$imgArray[2] = @ScriptDir & "\img\device\" & "3g.png"
+	
+	$imgArray[0] = UBound($imgArray) - 1
+	$imgArray[1] = @ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & "lte.png"
+	$imgArray[2] = @ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & "3g.png"
 
 	Local $hWnd = WinGetHandle(AssocArrayGet($env, "app.detecting.on"))
 	Local $aRect = WinGetPos($hWnd)
 
 
-	Local $result = _WaitForImagesSearchWithoutSleep($imgArray, 15, $aRect, $x, $y, 20, $startTime, $endTime, 0)
+	Local $result = _WaitForImagesSearchWithoutSleep($imgArray, 150000, $aRect, $x, $y, $tolerance, $startTime, $endTime, 0)
 
 	Select
 		Case $result == "0"
@@ -289,9 +292,9 @@ Func _noticeOperator($env, $wholeCount, $errorCount)
 	Local $hWnd = WinGetHandle(AssocArrayGet($env, "app.detecting.on"))
 	Local $aRect = WinGetPos($hWnd)
 
-	_clickImage(@ScriptDir & "/img/device/" & "sms.png", $aRect)
+	_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "/device/" & "sms.png", $aRect)
 	Sleep(1000)
-	_clickImage(@ScriptDir & "/img/device/" & "write_sms.png", $aRect)
+	_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "/device/" & "write_sms.png", $aRect)
 	Sleep(100)
 	Send("01020119386")
 EndFunc   ;==>_noticeOperator
@@ -325,7 +328,7 @@ Func _slideScreen($env, $nDirection)
 	Local $hWnd = WinGetHandle($app_detectingOn)
 	Local $aRect = WinGetPos($hWnd)
 
-	_clickImage(@ScriptDir & "\img\device\apps.png", $aRect)
+	_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\apps.png", $aRect)
 	Sleep(1000)
 
 	If $nDirection = 1 Then
@@ -337,7 +340,7 @@ Func _slideScreen($env, $nDirection)
 	EndIf
 
 	For $i = 0 To UBound($imgArray) - 1
-		Local $searchResult = _WaitForImageSearchWithoutSleep(@ScriptDir & "\img\device\" & $imgArray[$i], 5, $aRect, $x, $y, 20, $startTime, $endTime, 0)
+		Local $searchResult = _WaitForImageSearchWithoutSleep(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & $imgArray[$i], 5, $aRect, $x, $y, 20, $startTime, $endTime, 0)
 
 		If $searchResult > 0 Then
 			Local $tempArr[2] = [$x, $y]
@@ -366,7 +369,7 @@ Func _terminateApp()
 EndFunc   ;==>_terminateApp
 
 Func _clearMemory($env)
-	Local $trashImg = @ScriptDir & "\img\device\" & "trash.png"
+	Local $trashImg = @ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & "trash.png"
 	Local $app_detectingOn = AssocArrayGet($env, "app.detecting.on")
 	Local $hWnd = WinGetHandle($app_detectingOn)
 	Local $aRect = WinGetPos($hWnd)
