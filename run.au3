@@ -138,13 +138,11 @@ Func _WaitForImagesSearchWithoutSleep($findImage, $waitSecs, $aRect, ByRef $x, B
 		for $i = 1 to $findImage[0]
 		    $result = _ImageSearchArea($findImage[$i], 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $tolerance, $HBMP)
 			$endTime = TimerDiff($startTime)
-
-			If $result > 0 Then
+		    if $result > 0 Then
 			    return $i
 		    EndIf
 		Next
 	WEnd
-
 	return 0
 EndFunc
 
@@ -226,11 +224,11 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	Local $captureTitle = AssocArrayGet($env, "app.detecting.on")
 	Local $dbName = AssocArrayGet($env, "app.db.name")
 	Local $tableName = AssocArrayGet($env, "app.db.table")
-	_CaptureWindow("", $capturePath)
+	_CaptureWindow("", $capturePath, $aValues[6])
 	Local $nDbResult = _AddRecord($hConn, $dbName & "." & $tableName, $aFields, $aValues)
 	
-	Local $host = "http://stopwatch.skplanet.com"
-   Local $path = "/end-to-end-performance/insert"
+	Local $host = "http://" & AssocArray($env, "app.web.host")
+   Local $path = AssocArray($env, "app.web.path")
    Local $query[UBound($aFields)]
    For $i = 0 To UBound($aFields) - 1
 	  $query[$i] = $aFields[$i] & "=" & $aValues[$i]
@@ -262,8 +260,8 @@ Func _networkStatus($env)
 	Local $aRect = WinGetPos($hWnd)
 
 
-	Local $result = _WaitForImagesSearchWithoutSleep($imgArray, 15000, $aRect, $x, $y, 75, $startTime, $endTime, 0)
-	_Log("" & $result)
+	Local $result = _WaitForImagesSearchWithoutSleep($imgArray, 15, $aRect, $x, $y, 20, $startTime, $endTime, 0)
+
 	Select
 		Case $result == "0"
 			Return ""
@@ -390,7 +388,7 @@ Func _clearMemory($env)
 
 EndFunc   ;==>_clearMemory
 
-Func _CaptureWindow($sTargetTitle, $sDestRootPath)
+Func _CaptureWindow($sTargetTitle, $sDestRootPath, $isError)
 	$hWnd = WinGetHandle($sTargetTitle)
 
 	$sNow = @YEAR & @MON & @MDAY & "-" & @HOUR & @MIN & @SEC & "." & @MSEC
@@ -402,7 +400,7 @@ Func _CaptureWindow($sTargetTitle, $sDestRootPath)
 		Exit
 	EndIf
 
-	_ScreenCapture_CaptureWnd($sDestRootPath & "\capture_" & $sNow & ".bmp", $hWnd)
+	_ScreenCapture_CaptureWnd($sDestRootPath & "\capture_" & $sNow & "_" & $isError & ".bmp", $hWnd)
 EndFunc   ;==>_CaptureWindow
 
 Func _Timeout($start, $timeout)
