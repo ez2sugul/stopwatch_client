@@ -193,8 +193,8 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 			Local $image = AssocArrayGet($props, "app.loading.done")
 			$result = _detectImage($imgPath & "\" & $app_key & "\" & $image, $aRect, 15000, $startTime, $endTime)
 			$aValues[2] = $image
-			$aValues[4] = TimerDiff($primeStartTime)
-			$aValues[5] = $endTime
+			$aValues[4] = Ceiling(TimerDiff($primeStartTime))
+			$aValues[5] = Ceiling($endTime)
 			If $result = 1 Then
 				$aValues[6] = '0'
 			Else
@@ -206,8 +206,8 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 			Local $expectedImage = AssocArrayGet($props, "app.loading.done")
 			$result = _detectImageVanishing($imgPath & "\" & $app_key & "\" & $vanishingImage, $imgPath & "\" & $app_key & "\" & $expectedImage, $aRect, 15000, $startTime, $endTime)
 			$aValues[2] = $vanishingImage
-			$aValues[4] = TimerDiff($primeStartTime)
-			$aValues[5] = $endTime
+			$aValues[4] = Ceiling(TimerDiff($primeStartTime))
+			$aValues[5] = Ceiling($endTime)
 			If $result = 1 Then
 				$aValues[6] = '0'
 			Else
@@ -263,7 +263,7 @@ Func _networkStatus($env)
 	Local $aRect = WinGetPos($hWnd)
 
 
-	Local $result = _WaitForImagesSearchWithoutSleep($imgArray, 150000, $aRect, $x, $y, $tolerance, $startTime, $endTime, 0)
+	Local $result = _WaitForImagesSearchWithoutSleep($imgArray, 15000, $aRect, $x, $y, $tolerance, $startTime, $endTime, 0)
 
 	Select
 		Case $result == "0"
