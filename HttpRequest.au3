@@ -15,26 +15,26 @@ Func HttpRequest($method, $host, $path, $query, ByRef $http)
 		 $queryString = $queryString & "&" & $str
 	  EndIf
    Next
-   ConsoleWrite($host & $path & " " & $queryString & @CRLF)
+
    $http = ObjCreate("winhttp.winhttprequest.5.1")
-   
+
    If @error = 1 Then
-	  ConsoleWrite(@errors & @CRLF)
+	  ConsoleWrite(@error & @CRLF)
 	  Return -1
    EndIf
-   
+
    $http.Open($method, $host & $path, False)
    $http.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded")
 
    $http.Send($queryString)
-   
+
    Return 0
 EndFunc
 
-Func UrlEncode($url) 
+Func UrlEncode($url)
    Local $encodedUrl = ""
    Local $acode = ""
-   
+
    For $i = 1 To StringLen($url)
 	  $acode = Asc(StringMid($url, $i, 1))
 	  Select
@@ -43,9 +43,9 @@ Func UrlEncode($url)
 	  Case $acode = 32
 		 $encodedUrl = $encodedUrl & "+"
 	  Case Else
-		 $encodedUrl = $encodedUrl & "%" & Hex($acode, 2)		 
+		 $encodedUrl = $encodedUrl & "%" & Hex($acode, 2)
 	  EndSelect
    Next
-   
+
    Return $encodedUrl
 EndFunc

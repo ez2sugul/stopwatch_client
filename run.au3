@@ -92,8 +92,8 @@ Func _reconnect($env)
 	Send("{HOME}")
 	Sleep(1500)
 	Send("{HOME}")
-;	_clickImage($imgPath & "\" & "device" & "\" & "screen_lock.png", $aRect)
-;	_clickImage($imgPath & "\" & "device" & "\" & "screen_lock_hover.png", $aRect)
+	_clickImage($imgPath & "\" & "device" & "\" & "screen_lock.png", $aRect)
+	_clickImage($imgPath & "\" & "device" & "\" & "screen_lock_hover.png", $aRect)
 	Sleep(1000)
 EndFunc
 
@@ -226,20 +226,23 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	Local $tableName = AssocArrayGet($env, "app.db.table")
 	_CaptureWindow("", $capturePath, $aValues[6])
 	Local $nDbResult = _AddRecord($hConn, $dbName & "." & $tableName, $aFields, $aValues)
-	
+
 	Local $host = AssocArrayGet($env, "app.web.host")
    Local $path = AssocArrayGet($env, "app.web.path")
    Local $query[UBound($aFields) - 1]
    For $i = 0 To UBound($aFields) - 2
 	  $query[$i] = $aFields[$i] & "=" & UrlEncode($aValues[$i])
    Next
-   
+
    Local $queryString = ""
    Local $http
    Local $result = HttpRequest("POST", $host, $path, $query, $http)
-   _Log("http request : " & $result)
-   _Log($http.ResponseText)
-   _Log($http.Status)
+
+   If $http.Status > 200 Then
+		_Log($http.Status)
+	EndIf
+
+	_Log("request result : " & $http.ResponseText)
 
 	_terminateApp()
 
@@ -254,7 +257,7 @@ Func _networkStatus($env)
 	Local $x = 0
 	Local $y = 0
 	Local $imgArray[3]
-	
+
 	$imgArray[0] = UBound($imgArray) - 1
 	$imgArray[1] = @ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & "lte.png"
 	$imgArray[2] = @ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & "3g.png"
@@ -267,14 +270,14 @@ Func _networkStatus($env)
 
 	Select
 		Case $result == "0"
-			Return ""
+			Return "unknown"
 		Case $result == "1"
 			Return "lte"
 		Case $result == "2"
-			Return "3g"
+			Return "cdma3g"
 	EndSelect
 
-	Return ""
+	Return "unknown"
 EndFunc
 
 Func _noticeOperator($env, $wholeCount, $errorCount)
