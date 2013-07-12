@@ -6,7 +6,9 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Func main()
+	_Log("Initializing")
 	Global $hHook
+	Global $hConn
 	_registExitProc()
 	OnAutoItExitRegister("Cleanup")
 	Opt("WinTitleMatchMode", 2)
@@ -20,17 +22,16 @@ Func main()
 	Local $sIP = AssocArrayGet($env, "app.db.ip")
 	Local $sTable = AssocArrayGet($env, "app.db.table")
 
-	Global $hConn = _MySQLConnect($sUser, $sPasswd, $sDbName, $sIP, $sConnectionString)
 
-	If $hConn = 0 Then
-		_Log("Connection Failed : " & @error)
-		Exit
-	Else
-		_Query($hConn, GetSQLUseDatabase($sDbName))
-		_Query($hConn, GetSQLCreateTable($sTable))
-	EndIf
+;	$hConn = _MySQLConnect($sUser, $sPasswd, $sDbName, $sIP, $sConnectionString)
 
-
+;	If $hConn = 0 Then
+;		_Log("Connection Failed : " & @error)
+;		Exit
+;	Else
+;		_Query($hConn, GetSQLUseDatabase($sDbName))
+;		_Query($hConn, GetSQLCreateTable($sTable))
+;	EndIf
 
 	Local $apps = _get_apps_to_go($env)
 	Local $nActivate = WinActivate(AssocArrayGet($env, "app.detecting.on"), "")
@@ -61,8 +62,7 @@ Func main()
 				$bFoundAny = 1
 			EndIf
 
-			Local $dbResult = _Query($hConn, GetErrorCount(AssocArrayGet($env, "app.db.table"), $one, AssocArrayGet($env, "app.target.device")))
-			;_noticeOperator($env, $dbResult.Fields("c1").value, $dbResult.Fields("c2").value)
+;			Local $dbResult = _Query($hConn, GetErrorCount(AssocArrayGet($env, "app.db.table"), $one, AssocArrayGet($env, "app.target.device")))
 		Next
 
 		If $bFoundAny = 0 Then
@@ -225,7 +225,7 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	Local $dbName = AssocArrayGet($env, "app.db.name")
 	Local $tableName = AssocArrayGet($env, "app.db.table")
 	_CaptureWindow("", $capturePath, $aValues[6])
-	Local $nDbResult = _AddRecord($hConn, $dbName & "." & $tableName, $aFields, $aValues)
+;	Local $nDbResult = _AddRecord($hConn, $dbName & "." & $tableName, $aFields, $aValues)
 
 	Local $host = AssocArrayGet($env, "app.web.host")
    Local $path = AssocArrayGet($env, "app.web.path")
@@ -243,7 +243,7 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	EndIf
 
 	_Log("request result : " & $http.ResponseText)
-
+	;$http = 0
 	_terminateApp()
 
 	Return 1

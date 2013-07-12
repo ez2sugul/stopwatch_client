@@ -1,5 +1,9 @@
 #include "mysql.au3"
 
+Func ConnectToDB()
+	;;
+EndFunc
+
 Func GetSQLCreateTable($sTable)
    $sQryCreateTable = "CREATE TABLE IF NOT EXISTS `" & $sTable & "` (" & _
 	  "`id` int(11) unsigned NOT NULL AUTO_INCREMENT," & _
