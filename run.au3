@@ -12,7 +12,7 @@ Func main()
 	_registExitProc()
 	OnAutoItExitRegister("Cleanup")
 	Opt("WinTitleMatchMode", 2)
-
+	$oMyError = ObjEvent("AutoIt.Error","MyErrFunc")    ; Initialize a COM error handler
 	Local $env = _parse_app_section("env")
 
 	Local $sConnectionString = AssocArrayGet($env, "app.db.connection.string")
@@ -78,6 +78,18 @@ Func main()
 
 	WEnd
 EndFunc   ;==>main
+
+; This is my custom defined error handler
+Func MyErrFunc($oMyError)
+  _Log(      "err.description is: " & @TAB & $oMyError.description  & @CRLF & _
+             "err.windescription:"   & @TAB & $oMyError.windescription & @CRLF & _
+             "err.number is: "       & @TAB & $oMyError.number  & @CRLF & _
+             "err.lastdllerror is: "   & @TAB & $oMyError.lastdllerror   & @CRLF & _
+             "err.scriptline is: "   & @TAB & $oMyError.scriptline   & @CRLF & _
+             "err.source is: "       & @TAB & $oMyError.source       & @CRLF & _
+             "err.helpfile is: "       & @TAB & $oMyError.helpfile     & @CRLF & _
+             "err.helpcontext is: " & @TAB & $oMyError.helpcontext)
+Endfunc
 
 
 Func _reconnect($env)
@@ -232,18 +244,22 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
    Local $query[UBound($aFields) - 1]
    For $i = 0 To UBound($aFields) - 2
 	  $query[$i] = $aFields[$i] & "=" & UrlEncode($aValues[$i])
-   Next
+	Next
 
    Local $queryString = ""
    Local $http
    Local $result = HttpRequest("POST", $host, $path, $query, $http)
 
-   If $http.Status > 200 Then
-		_Log($http.Status)
-	EndIf
+	If $result = 0 Then
+	   If $http.Status > 200 Then
+			_Log($http.Status)
+		EndIf
 
-	_Log("request result : " & $http.ResponseText)
-	;$http = 0
+		_Log("request result : " & $http.ResponseText)
+		;$http = 0
+	Else
+		_Log("Post Method failed")
+	EndIf
 	_terminateApp()
 
 	Return 1
