@@ -1,11 +1,10 @@
 ;
 ; method : post or get
-; host : host string of url
-; path : path string of url
+; host : host string of url containing host and path
 ; query : array of query strings, each query string must be pair of key and value that can be divided by '='.
 ;		for example key=value
 ; http : [out] if function success http handle will be stored
-Func HttpRequest($method, $host, $path, $query, ByRef $http)
+Func HttpRequest($method, $host, $query, ByRef $http)
    Local $queryString = ""
 
    For $str In $query
@@ -22,8 +21,8 @@ Func HttpRequest($method, $host, $path, $query, ByRef $http)
 	  ConsoleWrite(@error & @CRLF)
 	  Return -1
    EndIf
-
-   $http.Open($method, $host & $path, False)
+	ConsoleWrite($host & " " & $queryString & @CRLF)
+   $http.Open($method, $host, False)
    $http.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded")
 
    $http.Send($queryString)

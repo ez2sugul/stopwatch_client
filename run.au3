@@ -12,26 +12,27 @@ Func main()
 	_registExitProc()
 	OnAutoItExitRegister("Cleanup")
 	Opt("WinTitleMatchMode", 2)
-	$oMyError = ObjEvent("AutoIt.Error","MyErrFunc")    ; Initialize a COM error handler
+	$oMyError = ObjEvent("AutoIt.Error", "MyErrFunc") ; Initialize a COM error handler
 	Local $env = _parse_app_section("env")
 
 	Local $sConnectionString = AssocArrayGet($env, "app.db.connection.string")
 	Local $sUser = AssocArrayGet($env, "app.db.user")
 	Local $sPasswd = AssocArrayGet($env, "app.db.passwd")
 	Local $sDbName = AssocArrayGet($env, "app.db.name")
+	Local $value = AssocArrayGet($env, "app.db.ip")
 	Local $sIP = AssocArrayGet($env, "app.db.ip")
 	Local $sTable = AssocArrayGet($env, "app.db.table")
 
 
-;	$hConn = _MySQLConnect($sUser, $sPasswd, $sDbName, $sIP, $sConnectionString)
+	;	$hConn = _MySQLConnect($sUser, $sPasswd, $sDbName, $sIP, $sConnectionString)
 
-;	If $hConn = 0 Then
-;		_Log("Connection Failed : " & @error)
-;		Exit
-;	Else
-;		_Query($hConn, GetSQLUseDatabase($sDbName))
-;		_Query($hConn, GetSQLCreateTable($sTable))
-;	EndIf
+	;	If $hConn = 0 Then
+	;		_Log("Connection Failed : " & @error)
+	;		Exit
+	;	Else
+	;		_Query($hConn, GetSQLUseDatabase($sDbName))
+	;		_Query($hConn, GetSQLCreateTable($sTable))
+	;	EndIf
 
 	Local $apps = _get_apps_to_go($env)
 	Local $nActivate = WinActivate(AssocArrayGet($env, "app.detecting.on"), "")
@@ -62,7 +63,7 @@ Func main()
 				$bFoundAny = 1
 			EndIf
 
-;			Local $dbResult = _Query($hConn, GetErrorCount(AssocArrayGet($env, "app.db.table"), $one, AssocArrayGet($env, "app.target.device")))
+			;			Local $dbResult = _Query($hConn, GetErrorCount(AssocArrayGet($env, "app.db.table"), $one, AssocArrayGet($env, "app.target.device")))
 		Next
 
 		If $bFoundAny = 0 Then
@@ -81,15 +82,10 @@ EndFunc   ;==>main
 
 ; This is my custom defined error handler
 Func MyErrFunc($oMyError)
-  _Log(      "err.description is: " & @TAB & $oMyError.description  & @CRLF & _
-             "err.windescription:"   & @TAB & $oMyError.windescription & @CRLF & _
-             "err.number is: "       & @TAB & $oMyError.number  & @CRLF & _
-             "err.lastdllerror is: "   & @TAB & $oMyError.lastdllerror   & @CRLF & _
-             "err.scriptline is: "   & @TAB & $oMyError.scriptline   & @CRLF & _
-             "err.source is: "       & @TAB & $oMyError.source       & @CRLF & _
-             "err.helpfile is: "       & @TAB & $oMyError.helpfile     & @CRLF & _
-             "err.helpcontext is: " & @TAB & $oMyError.helpcontext)
-Endfunc
+	_Log("err.description is: " & @TAB & $oMyError.description & @CRLF & _
+			"err.scriptline is: " & @TAB & $oMyError.scriptline & @CRLF & _
+			"err.source is: " & @TAB & $oMyError.source)
+EndFunc   ;==>MyErrFunc
 
 
 Func _reconnect($env)
@@ -107,7 +103,7 @@ Func _reconnect($env)
 	_clickImage($imgPath & "\" & "device" & "\" & "screen_lock.png", $aRect)
 	_clickImage($imgPath & "\" & "device" & "\" & "screen_lock_hover.png", $aRect)
 	Sleep(1000)
-EndFunc
+EndFunc   ;==>_reconnect
 
 
 Func _remainedIteration($env, $iteration)
@@ -147,16 +143,16 @@ Func _WaitForImagesSearchWithoutSleep($findImage, $waitSecs, $aRect, ByRef $x, B
 	$endTime = TimerDiff($startTime)
 
 	While $endTime < $waitSecs
-		for $i = 1 to $findImage[0]
-		    $result = _ImageSearchArea($findImage[$i], 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $tolerance, $HBMP)
+		For $i = 1 To $findImage[0]
+			$result = _ImageSearchArea($findImage[$i], 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $tolerance, $HBMP)
 			$endTime = TimerDiff($startTime)
-		    if $result > 0 Then
-			    return $i
-		    EndIf
+			If $result > 0 Then
+				Return $i
+			EndIf
 		Next
 	WEnd
-	return 0
-EndFunc
+	Return 0
+EndFunc   ;==>_WaitForImagesSearchWithoutSleep
 
 Func _get_apps_to_go($env)
 	Local $value = AssocArrayGet($env, "app.list")
@@ -188,7 +184,7 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 
 	; database fields
 	Local $aFields[9] = ["serviceName", "deviceName", "actionName", "actionDate", "startTime", "durationTime", "isError", "network", ""]
-	Local $aValues[UBound($aFields)] = [$app_key, AssocArrayGet($env, "app.target.device"), "", @YEAR & @MON & @MDAY & @HOUR & @MIN & @SEC, "", "", "", "",""]
+	Local $aValues[UBound($aFields)] = [$app_key, AssocArrayGet($env, "app.target.device"), "", @YEAR & @MON & @MDAY & @HOUR & @MIN & @SEC, "", "", "", "", ""]
 
 	; tap on apps image
 	_clickImage($imgPath & "\" & "device" & "\" & "apps.png", $aRect)
@@ -237,33 +233,43 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	Local $dbName = AssocArrayGet($env, "app.db.name")
 	Local $tableName = AssocArrayGet($env, "app.db.table")
 	_CaptureWindow("", $capturePath, $aValues[6])
-;	Local $nDbResult = _AddRecord($hConn, $dbName & "." & $tableName, $aFields, $aValues)
+	;	Local $nDbResult = _AddRecord($hConn, $dbName & "." & $tableName, $aFields, $aValues)
 
-	Local $host = AssocArrayGet($env, "app.web.host")
-   Local $path = AssocArrayGet($env, "app.web.path")
-   Local $query[UBound($aFields) - 1]
-   For $i = 0 To UBound($aFields) - 2
-	  $query[$i] = $aFields[$i] & "=" & UrlEncode($aValues[$i])
+	Local $hostString = AssocArrayGet($env, "app.web.host")
+	Local $hosts = StringSplit($hostString, ",")
+
+	Local $query[UBound($aFields) - 1]
+	For $i = 0 To UBound($aFields) - 2
+		$query[$i] = $aFields[$i] & "=" & UrlEncode($aValues[$i])
 	Next
 
-   Local $queryString = ""
-   Local $http
-   Local $result = HttpRequest("POST", $host, $path, $query, $http)
+	Local $requestResult = RequestToServer($hosts, $query)
 
-	If $result = 0 Then
-	   If $http.Status > 200 Then
-			_Log($http.Status)
-		EndIf
-
-		_Log("request result : " & $http.ResponseText)
-		;$http = 0
-	Else
-		_Log("Post Method failed")
-	EndIf
 	_terminateApp()
 
 	Return 1
 EndFunc   ;==>_start_app
+
+Func RequestToServer($hosts, $query)
+
+	Local $queryString = ""
+	Local $http
+	For $host In $hosts
+		Local $result = HttpRequest("POST", $host, $query, $http)
+
+		If $result = 0 Then
+			If $http.Status > 200 Then
+				_Log($http.Status)
+			EndIf
+
+			_Log("request result : " & $http.ResponseText)
+			;$http = 0
+		Else
+			_Log("Post Method failed")
+		EndIf
+	Next
+
+EndFunc   ;==>RequestToServer
 
 Func _networkStatus($env)
 	Local $result
@@ -294,7 +300,7 @@ Func _networkStatus($env)
 	EndSelect
 
 	Return "unknown"
-EndFunc
+EndFunc   ;==>_networkStatus
 
 Func _noticeOperator($env, $wholeCount, $errorCount)
 	If @HOUR < 9 And @HOUR > 18 And @WDAY > 1 And @WDAY < 7 Then
@@ -302,11 +308,11 @@ Func _noticeOperator($env, $wholeCount, $errorCount)
 		Return
 	EndIf
 
-;	If $wholeCount = 0 Then
-;		ConsoleWrite("was not checked " & @CRLF)
-;	ElseIf $errorCount >= 3 Then
-;		ConsoleWrite("Error Count " & $errorCount & @CRLF)
-;	EndIf
+	;	If $wholeCount = 0 Then
+	;		ConsoleWrite("was not checked " & @CRLF)
+	;	ElseIf $errorCount >= 3 Then
+	;		ConsoleWrite("Error Count " & $errorCount & @CRLF)
+	;	EndIf
 
 	Local $hWnd = WinGetHandle(AssocArrayGet($env, "app.detecting.on"))
 	Local $aRect = WinGetPos($hWnd)
@@ -524,8 +530,8 @@ main()
 
 
 Func _Log($line)
-	ConsoleWrite("[" & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "] "& $line & @CRLF)
-EndFunc   ;==>_w
+	ConsoleWrite("[" & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "] " & $line & @CRLF)
+EndFunc   ;==>_Log
 
 Func _ExitProc($nCode, $wParam, $lParam)
 	Local $tKEYHOOKS
