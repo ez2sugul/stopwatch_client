@@ -254,8 +254,12 @@ Func RequestToServer($hosts, $query)
 
 	Local $queryString = ""
 	Local $http
-	For $host In $hosts
-		Local $result = HttpRequest("POST", $host, $query, $http)
+	Local $host
+	Local $i = 0
+
+	For $i = 1 To $hosts[0]
+		_Log("Host " & $host)
+		Local $result = HttpRequest("POST", $hosts[$i], $query, $http)
 
 		If $result = 0 Then
 			If $http.Status > 200 Then
