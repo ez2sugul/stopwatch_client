@@ -50,7 +50,7 @@ Func UrlEncode($url)
 EndFunc   ;==>UrlEncode
 
 Func UploadFileUsingCurl($sUrl, $sFile)
-	Local $pid = Run(@ScriptDir & '\curl-7.31.0-ssl-sspi-zlib-static-bin-w32\curl.exe -F capturedImageFile=@' & $sFile & ' ' & $sUrl, "", @SW_MAXIMIZE, $STDERR_CHILD + $STDOUT_CHILD)
+	Local $pid = Run(@ScriptDir & '\curl-7.31.0-ssl-sspi-zlib-static-bin-w32\curl.exe -F capturedImageFile=@' & $sFile & ' ' & $sUrl, "", @SW_MINIMIZE, 8)
 
 	If @error Then
 		ConsoleWrite("Error " & @error)

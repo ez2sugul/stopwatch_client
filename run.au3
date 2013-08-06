@@ -232,8 +232,6 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	Local $captureTitle = AssocArrayGet($env, "app.detecting.on")
 	Local $dbName = AssocArrayGet($env, "app.db.name")
 	Local $tableName = AssocArrayGet($env, "app.db.table")
-	_CaptureWindow("", $capturePath, $aValues[6])
-	;	Local $nDbResult = _AddRecord($hConn, $dbName & "." & $tableName, $aFields, $aValues)
 
 	Local $hostString = AssocArrayGet($env, "app.web.host")
 	Local $hosts = StringSplit($hostString, ",")
@@ -244,6 +242,22 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	Next
 
 	Local $requestResult = RequestToServer($hosts, $query)
+	Local $sCaptureFileName = @YEAR & @MON & @MDAY & @HOUR & @MIN & @SEC
+
+	If StringIsDigit($requestResult) = 1 Then
+		; inserting record success.
+		$sCaptureFileName &= "_" & $requestResult
+	EndIf
+
+	_CaptureWindow("", $capturePath, $sCaptureFileName & ".bmp")
+	Local $sUploadFile = $capturePath & "\" & $sCaptureFileName & ".bmp"
+
+	If $aValues[6] = 1 And StringIsDigit($requestResult) AND FileExists($sUploadFile) Then
+		; app loading error occured.
+		Local $sUploadUrl = AssocArrayGet($env, "app.web.upload")
+		UploadFileUsingCurl($sUploadUrl, $sUploadFile)
+		_Log("Uploading done " & $sUploadFile)
+	EndIf
 
 	_terminateApp()
 
@@ -256,6 +270,7 @@ Func RequestToServer($hosts, $query)
 	Local $http
 	Local $host
 	Local $i = 0
+	Local $requestResult = ""
 
 	For $i = 1 To $hosts[0]
 		_Log("Host " & $host)
@@ -266,12 +281,15 @@ Func RequestToServer($hosts, $query)
 				_Log($http.Status)
 			EndIf
 
+			$requestResult = StringReplace($http.ResponseText, '"', "")
 			_Log("request result : " & $http.ResponseText)
-			;$http = 0
+			$http = 0
 		Else
 			_Log("Post Method failed")
 		EndIf
 	Next
+
+	Return $requestResult
 
 EndFunc   ;==>RequestToServer
 
@@ -420,11 +438,8 @@ Func _clearMemory($env)
 
 EndFunc   ;==>_clearMemory
 
-Func _CaptureWindow($sTargetTitle, $sDestRootPath, $isError)
+Func _CaptureWindow($sTargetTitle, $sDestRootPath, $sFileName)
 	$hWnd = WinGetHandle($sTargetTitle)
-
-	$sNow = @YEAR & @MON & @MDAY & "-" & @HOUR & @MIN & @SEC & "." & @MSEC
-	;$sDirName = "C:\Users\sktelecom\Pictures" & "\" & @YEAR & @MON & @MDAY
 	$result = DirCreate($sDestRootPath)
 
 	If $result = 0 Then
@@ -432,7 +447,7 @@ Func _CaptureWindow($sTargetTitle, $sDestRootPath, $isError)
 		Exit
 	EndIf
 
-	_ScreenCapture_CaptureWnd($sDestRootPath & "\capture_" & $sNow & "_" & $isError & ".bmp", $hWnd)
+	_ScreenCapture_CaptureWnd($sDestRootPath & "\" & $sFileName, $hWnd)
 EndFunc   ;==>_CaptureWindow
 
 Func _Timeout($start, $timeout)
