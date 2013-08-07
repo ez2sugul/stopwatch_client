@@ -394,7 +394,6 @@ Func _slideScreen($env, $nDirection)
 			$coord[$i][0] = $x
 			$coord[$i][1] = $y
 		Else
-			_Log("can't find " & $imgArray[$i])
 			SetError(1)
 			Return 1
 		EndIf
@@ -410,10 +409,8 @@ EndFunc   ;==>_slideScreen
 Func _terminateApp()
 	For $i = 0 To 20
 		Send("{ESC}")
-		Sleep(100)
+		Sleep(200)
 	Next
-
-	Sleep(500)
 
 	Send("{HOME}")
 EndFunc   ;==>_terminateApp
@@ -450,7 +447,7 @@ Func _CaptureWindow($sTargetTitle, $sDestRootPath, $sFileName)
 		Exit
 	EndIf
 
-	_ScreenCapture_CaptureWnd($sDestRootPath & "\" & $sFileName, $hWnd, 0, 0, -1, -1, False)
+	_ScreenCapture_CaptureWnd($sDestRootPath & "\" & $sFileName, $hWnd)
 EndFunc   ;==>_CaptureWindow
 
 Func _Timeout($start, $timeout)
