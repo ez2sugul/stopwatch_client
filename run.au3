@@ -445,7 +445,7 @@ Func _CaptureWindow($sTargetTitle, $sDestRootPath, $sFileName)
 		Exit
 	EndIf
 
-	_ScreenCapture_CaptureWnd($sDestRootPath & "\" & $sFileName, $hWnd)
+	_ScreenCapture_CaptureWnd($sDestRootPath & "\" & $sFileName, $hWnd, 0, 0, -1, -1, False)
 EndFunc   ;==>_CaptureWindow
 
 Func _Timeout($start, $timeout)
