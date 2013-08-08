@@ -273,7 +273,6 @@ Func RequestToServer($hosts, $query)
 	Local $requestResult = ""
 
 	For $i = 1 To $hosts[0]
-		_Log("Host " & $host)
 		Local $result = HttpRequest("POST", $hosts[$i], $query, $http)
 
 		If $result = 0 Then
@@ -282,7 +281,6 @@ Func RequestToServer($hosts, $query)
 			EndIf
 
 			$requestResult = StringReplace($http.ResponseText, '"', "")
-			_Log("request result : " & $http.ResponseText)
 			$http = 0
 		Else
 			_Log("Post Method failed")
