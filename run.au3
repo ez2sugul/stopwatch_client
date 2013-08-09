@@ -57,7 +57,6 @@ Func main()
 			If _start_app($env, $hConn, $primeStartTime, $one) = 0 Then
 				; check failed
 			Else
-				; sleeping to wait for going back to home screen
 				_clearMemory($env)
 				Sleep(AssocArrayGet($env, "app.interval.sec") * 1000)
 				$bFoundAny = 1
@@ -411,6 +410,7 @@ Func _terminateApp()
 	Next
 
 	Send("{HOME}")
+	Sleep(700)
 EndFunc   ;==>_terminateApp
 
 Func _clearMemory($env)
