@@ -480,8 +480,8 @@ Func _detectImageVanishing($vanishingImage, $expectedImage, $aRect, $timeout, By
 					_Log("image was vanished")
 					$result = _ImageSearchArea($expectedImage, 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $tolerance, 0)
 					If $result = 1 Then
-						_Log("image was detected")
 						$endTime = TimerDiff($startTime)
+						_Log("Expected Image was found at " & $endTime)
 						Return 1
 					EndIf
 				EndIf
@@ -509,6 +509,7 @@ Func _detectImageVanishing($vanishingImage, $expectedImage, $aRect, $timeout, By
 					; 최초로 탐지한 시간을 저장
 					; 사라지는 이미지를 찾지 못한 경우에 로딩 완료 시간으로 사용함
 					$endTime = TimerDiff($startTime)
+					_Log("Expected Image was found at " & $endTime)
 				EndIf
 			EndIf
 
