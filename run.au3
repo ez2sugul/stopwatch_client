@@ -180,6 +180,7 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	Local $hWnd = WinGetHandle(AssocArrayGet($env, "app.detecting.on"))
 	Local $aRect = WinGetPos($hWnd)
 	Local $imgPath = @ScriptDir & AssocArrayGet($env, "app.img.path")
+	Local $bUpdateServer = AssocArrayGet($env, "app.web.update")
 
 	; database fields
 	Local $aFields[9] = ["serviceName", "deviceName", "actionName", "actionDate", "startTime", "durationTime", "isError", "network", ""]
@@ -240,7 +241,10 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 		$query[$i] = $aFields[$i] & "=" & UrlEncode($aValues[$i])
 	Next
 
-	Local $requestResult = RequestToServer($hosts, $query)
+	Local $requestResult
+	If $bUpdateServer = 1 Then
+		$requestResult = RequestToServer($hosts, $query)
+	EndIf
 	Local $sCaptureFileName = @YEAR & @MON & @MDAY & @HOUR & @MIN & @SEC
 
 	If StringIsDigit($requestResult) = 1 Then
@@ -254,7 +258,9 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	If $aValues[6] = 1 And StringIsDigit($requestResult) AND FileExists($sUploadFile) Then
 		; app loading error occured.
 		Local $sUploadUrl = AssocArrayGet($env, "app.web.upload")
-		UploadFileUsingCurl($sUploadUrl, $sUploadFile)
+		If $bUpdateServer = 1 Then
+			UploadFileUsingCurl($sUploadUrl, $sUploadFile)
+		EndIf
 		_Log("Uploading done " & $sUploadFile)
 	EndIf
 
@@ -468,7 +474,6 @@ Func _detectImageVanishing($vanishingImage, $expectedImage, $aRect, $timeout, By
 		; 사라지는 이미지 탐지
 		; timeout 0으로 대기 시간 없이 탐지 실패시 즉시 리턴
 		$result = _ImageSearchArea($vanishingImage, 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $tolerance, 0)
-		;	  ConsoleWrite($vanishingImage & " " & $result & @CRLF)
 
 		If $result == 1 Then
 			; 사라지는 이미지 탐지 성공
@@ -561,7 +566,7 @@ Func _ExitProc($nCode, $wParam, $lParam)
 
 	;ConsoleWrite("Entered Key = " & DllStructGetData($tKEYHOOKS, "vkcode") & @CRLF)
 
-	If DllStructGetData($tKEYHOOKS, "vkcode") = 123 Then
+	If DllStructGetData($tKEYHOOKS, "vkcode") = 121 Then
 		Exit
 	EndIf
 EndFunc   ;==>_ExitProc
