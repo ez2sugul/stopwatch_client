@@ -3,6 +3,7 @@
 #include "DbConn.au3"
 #include <ScreenCapture.au3>
 #include "HttpRequest.au3"
+#include <File.au3>
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Func main()
@@ -71,7 +72,15 @@ Func main()
 			_reconnect($env)
 
 		Else
-			_slideScreen($env, 1)
+			Local $bSwipe = AssocArrayGet($env, "app.swipe")
+
+			If @error Then
+				_Log("app.swipe not found")
+			Else
+				If $bSwipe = 1 Then
+					_slideScreen($env, 1)
+				EndIf
+			EndIf
 		EndIf
 
 		$iteration += 1
@@ -126,12 +135,15 @@ Func _WaitForImageSearchWithoutSleep($findImage, $waitSecs, $aRect, ByRef $x, By
 
 	While $endTime < $waitSecs
 		$result = _ImageSearchArea($findImage, 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $tolerance, $HBMP)
+
 		;$result=_ImageSearch($findImage,$resultPosition,$x, $y,$tolerance,$HBMP)
 		$endTime = TimerDiff($startTime)
 
 		If $result > 0 Then
+
 			Return 1
 		EndIf
+
 	WEnd
 
 	Return 0
@@ -229,10 +241,6 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	_Log($app_key & " " & $app_type & " " & $result & " " & $endTime & " " & $network)
 
 	Local $capturePath = AssocArrayGet($env, "app.capture.path") & "\" & @YEAR & @MON & @MDAY & "\" & $app_key
-	Local $captureTitle = AssocArrayGet($env, "app.detecting.on")
-	Local $dbName = AssocArrayGet($env, "app.db.name")
-	Local $tableName = AssocArrayGet($env, "app.db.table")
-
 	Local $hostString = AssocArrayGet($env, "app.web.host")
 	Local $hosts = StringSplit($hostString, ",")
 
@@ -255,7 +263,7 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	_CaptureWindow("", $capturePath, $sCaptureFileName & ".bmp")
 	Local $sUploadFile = $capturePath & "\" & $sCaptureFileName & ".bmp"
 
-	If $aValues[6] = 1 And StringIsDigit($requestResult) AND FileExists($sUploadFile) Then
+	If $aValues[6] = 1 And StringIsDigit($requestResult) And FileExists($sUploadFile) Then
 		; app loading error occured.
 		Local $sUploadUrl = AssocArrayGet($env, "app.web.upload")
 		If $bUpdateServer = 1 Then
@@ -264,10 +272,37 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 		_Log("Uploading done " & $sUploadFile)
 	EndIf
 
+	Local $bOutput = AssocArrayGet($env, "app.output")
+
+	If @error Then
+		_Log("app.output not found")
+	Else
+		If $bOutput = 1 Then
+			Local $sOutputPath = AssocArrayGet($env, "app.output.path")
+
+			If @error Then
+				_Log("app.output.path not found")
+			Else
+				_FileWriteLog(@ScriptDir & "\" & $app_key & ".txt", $aValues[5], -1) ; Write to the logfile passing the filehandle returned by FileOpen.
+			EndIf
+		Else
+			_Log("skip output")
+		EndIf
+	EndIf
+
+	; check out whether event windows exist
+	; if event windows are exist remove to not open
+	_areThereAnyEventWindows($env)
+
+
 	_terminateApp()
 
 	Return 1
 EndFunc   ;==>_start_app
+
+Func _areThereAnyEventWindows($env)
+	Local $eventList = AssocArrayGet($env, "app.event")
+EndFunc   ;==>_areThereAnyEventWindows
 
 Func RequestToServer($hosts, $query)
 
@@ -442,6 +477,41 @@ Func _clearMemory($env)
 
 EndFunc   ;==>_clearMemory
 
+Func _clearMemory_forVega($env)
+	Local $home = @ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & "home.png"
+	Local $taskManager = @ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & "task_manager.png"
+	Local $trashImg = @ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & "trash.png"
+	Local $app_detectingOn = AssocArrayGet($env, "app.detecting.on")
+	Local $hWnd = WinGetHandle($app_detectingOn)
+	Local $aRect = WinGetPos($hWnd)
+	Local $x, $y, $startTime, $endTime
+
+
+	Local $searchResult = _WaitForImageSearchWithoutSleep($taskManager, 3, $aRect, $x, $y, 90, $startTime, $endTime, 0)
+
+	If $searchResult == 1 Then
+		MouseMove($x, $y)
+		MouseClick("left")
+		Sleep(1000)
+	Else
+		_Log("can not find task manager")
+		Send("{ESC}")
+	EndIf
+
+	Local $searchResult = _WaitForImageSearchWithoutSleep($trashImg, 3, $aRect, $x, $y, 90, $startTime, $endTime, 0)
+
+	If $searchResult == 1 Then
+		MouseMove($x, $y)
+		MouseClick("left")
+		Sleep(500)
+	Else
+		_Log("can not find trash")
+		Send("{ESC}")
+	EndIf
+
+EndFunc   ;==>_clearMemory_forVega
+
+
 Func _CaptureWindow($sTargetTitle, $sDestRootPath, $sFileName)
 	$hWnd = WinGetHandle($sTargetTitle)
 	$result = DirCreate($sDestRootPath)
@@ -548,6 +618,14 @@ Func _detectImage($image, $aRect, $timeout, ByRef $startTime, ByRef $endTime)
 	;_write_result_to_DB($props, $startTime, $duration)
 	Return $result
 EndFunc   ;==>_detectImage
+
+Func _detectImageBetween($aImage, $aRect, $timeout, ByRef $startTime, ByRef $endTime)
+	Local $x, $y
+	Local $tolerance = 70
+
+
+	Local $result = _WaitForImageSearchWithoutSleep($aImage, $timeout, $aRect, $x, $y, $tolerance, $startTime, $endTime, 0)
+EndFunc   ;==>_detectImageBetween
 
 main()
 
