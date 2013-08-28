@@ -84,6 +84,7 @@ Func main()
 		EndIf
 
 		$iteration += 1
+		_Log("Iteration [" & $iteration & "]")
 
 	WEnd
 EndFunc   ;==>main
