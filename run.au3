@@ -316,7 +316,7 @@ Func _areThereAnyEventWindows($env, $props, $app_key)
 		Local $delay = $aAction[3]
 
 		If $action = "click" Then
-			If _mouseMove(@ScriptDir & $imagePath & "\" & $app_key & "\" & $target, 0, $aRect) Then
+			If _clickImage(@ScriptDir & $imagePath & "\" & $app_key & "\" & $target, 0, $aRect) Then
 				; sleep to wait for screen transition
 				; 0 millisecond can be assigned as minimum
 				Sleep($delay)
