@@ -201,9 +201,9 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	Local $aValues[UBound($aFields)] = [$app_key, AssocArrayGet($env, "app.target.device"), "", @YEAR & @MON & @MDAY & @HOUR & @MIN & @SEC, "", "", "", "", ""]
 
 	; tap on apps image
-	_clickImage($imgPath & "\" & "device" & "\" & "apps.png", 1, $aRect)
+	_clickImage($imgPath & "\" & "device" & "\" & "apps.png", 500, $aRect)
 	Sleep(1000)
-	Local $result = _clickImage($imgPath & "\" & $app_key & "\" & $appIcon, 1, $aRect)
+	Local $result = _clickImage($imgPath & "\" & $app_key & "\" & $appIcon, 500, $aRect)
 
 	If $result = 0 Then
 		; can not find app icon
