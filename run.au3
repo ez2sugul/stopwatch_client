@@ -134,7 +134,7 @@ Func _WaitForImageSearchWithoutSleep($findImage, $waitSecs, $aRect, ByRef $x, By
 	$startTime = TimerInit()
 	$endTime = TimerDiff($startTime)
 
-	While $endTime < $waitSecs
+	Do
 		$result = _ImageSearchArea($findImage, 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $tolerance, $HBMP)
 
 		;$result=_ImageSearch($findImage,$resultPosition,$x, $y,$tolerance,$HBMP)
@@ -145,7 +145,7 @@ Func _WaitForImageSearchWithoutSleep($findImage, $waitSecs, $aRect, ByRef $x, By
 			Return 1
 		EndIf
 
-	WEnd
+	Until $endTime > $waitSecs
 
 	Return 0
 EndFunc   ;==>_WaitForImageSearchWithoutSleep
@@ -154,7 +154,7 @@ Func _WaitForImagesSearchWithoutSleep($findImage, $waitSecs, $aRect, ByRef $x, B
 	$startTime = TimerInit()
 	$endTime = TimerDiff($startTime)
 
-	While $endTime < $waitSecs
+	Do
 		For $i = 1 To $findImage[0]
 			$result = _ImageSearchArea($findImage[$i], 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $tolerance, $HBMP)
 			$endTime = TimerDiff($startTime)
@@ -162,7 +162,8 @@ Func _WaitForImagesSearchWithoutSleep($findImage, $waitSecs, $aRect, ByRef $x, B
 				Return $i
 			EndIf
 		Next
-	WEnd
+	Until $endTime > $waitSecs
+
 	Return 0
 EndFunc   ;==>_WaitForImagesSearchWithoutSleep
 
@@ -212,7 +213,7 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	Select
 		Case $app_type == "simple"
 			Local $image = AssocArrayGet($props, "app.loading.done")
-			$result = _detectImage($imgPath & "\" & $app_key & "\" & $image, $aRect, 15000, $startTime, $endTime)
+			$result = _detectImage($env, $props, $app_key, $imgPath & "\" & $app_key & "\" & $image, $aRect, 15000, $startTime, $endTime)
 			$aValues[2] = $image
 			$aValues[4] = Ceiling(TimerDiff($primeStartTime))
 			$aValues[5] = Ceiling($endTime)
@@ -225,7 +226,7 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 		Case $app_type == "vanish"
 			Local $vanishingImage = AssocArrayGet($props, "app.vanish")
 			Local $expectedImage = AssocArrayGet($props, "app.loading.done")
-			$result = _detectImageVanishing($imgPath & "\" & $app_key & "\" & $vanishingImage, $imgPath & "\" & $app_key & "\" & $expectedImage, $aRect, 15000, $startTime, $endTime)
+			$result = _detectImageVanishing($env, $props, $app_key, $imgPath & "\" & $app_key & "\" & $vanishingImage, $imgPath & "\" & $app_key & "\" & $expectedImage, $aRect, 15000, $startTime, $endTime)
 			$aValues[2] = $vanishingImage
 			$aValues[4] = Ceiling(TimerDiff($primeStartTime))
 			$aValues[5] = Ceiling($endTime)
@@ -235,12 +236,6 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 				$aValues[6] = '1'
 			EndIf
 	EndSelect
-
-	; check out whether event windows exist
-	; if event windows are exist, remove the windoes to not open anymore
-	;If $aValues[6] = '1' Then
-	;	_areThereAnyEventWindows($env)
-	;EndIf
 
 	Local $network = _networkStatus($env)
 	$aValues[7] = $network
@@ -302,29 +297,34 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	Return 1
 EndFunc   ;==>_start_app
 
-Func _areThereAnyEventWindows($env)
-	Local $eventString = AssocArrayGet($env, "app.event")
+Func _areThereAnyEventWindows($env, $props, $app_key)
+	Local $eventString = AssocArrayGet($props, "app.event")
 
 	If @error Then
-		return -1
+		Return -1
 	EndIf
 
+	Local $imagePath = AssocArrayGet($env, "app.img.path")
 	Local $hWnd = WinGetHandle(AssocArrayGet($env, "app.detecting.on"))
 	Local $aRect = WinGetPos($hWnd)
 
 	Local $aEvent = StringSplit($eventString, ",")
-	For $event In $aEvent
-		Local $aAction = StringSplit($event, ":")
-		Local $target = $aAction[0]
-		Local $action = $aAction[1]
-		Local $delay = $aAction[2]
+	For $i = 1 To $aEvent[0]
+		Local $aAction = StringSplit($aEvent[$i], ":")
+		Local $target = $aAction[1]
+		Local $action = $aAction[2]
+		Local $delay = $aAction[3]
 
 		If $action = "click" Then
-			_mouseMove($target, 0, $aRect)
+			If _mouseMove(@ScriptDir & $imagePath & "\" & $app_key & "\" & $target, 0, $aRect) Then
+				; sleep to wait for screen transition
+				; 0 millisecond can be assigned as minimum
+				Sleep($delay)
+			EndIf
 		EndIf
-
-		Sleep($delay)
 	Next
+
+	Return 0
 EndFunc   ;==>_areThereAnyEventWindows
 
 Func RequestToServer($hosts, $query)
@@ -442,7 +442,7 @@ Func _mouseMove($image, $waitSecs, $aRect)
 	EndIf
 
 	Return 0
-EndFunc   ;==>_clickImage
+EndFunc   ;==>_mouseMove
 
 Func _slideScreen($env, $nDirection)
 	_Log("SlideScreen")
@@ -573,7 +573,7 @@ Func _Timeout($start, $timeout)
 	Return 0
 EndFunc   ;==>_Timeout
 
-Func _detectImageVanishing($vanishingImage, $expectedImage, $aRect, $timeout, ByRef $startTime, ByRef $endTime)
+Func _detectImageVanishing($env, $props, $app_key, $vanishingImage, $expectedImage, $aRect, $timeout, ByRef $startTime, ByRef $endTime)
 	Local $result
 	Local $tolerance = 70
 	Local $x = 0
@@ -582,6 +582,7 @@ Func _detectImageVanishing($vanishingImage, $expectedImage, $aRect, $timeout, By
 	$startTime = TimerInit()
 
 	While 1
+		_areThereAnyEventWindows($env, $props, $app_key)
 		; 사라지는 이미지 탐지
 		; timeout 0으로 대기 시간 없이 탐지 실패시 즉시 리턴
 		$result = _ImageSearchArea($vanishingImage, 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $tolerance, 0)
@@ -650,13 +651,26 @@ Func _detectImageVanishing($vanishingImage, $expectedImage, $aRect, $timeout, By
 
 EndFunc   ;==>_detectImageVanishing
 
-Func _detectImage($image, $aRect, $timeout, ByRef $startTime, ByRef $endTime)
+Func _detectImage($env, $props, $app_key, $image, $aRect, $timeout, ByRef $startTime, ByRef $endTime)
 	Local $x, $y
 	Local $tolerance = 70
 
-	Local $result = _WaitForImageSearchWithoutSleep($image, $timeout, $aRect, $x, $y, $tolerance, $startTime, $endTime, 0)
+	$startTime = TimerInit()
+	$endTime = TimerDiff($startTime)
 
-	;_write_result_to_DB($props, $startTime, $duration)
+	Do
+		_areThereAnyEventWindows($env, $props, $app_key)
+
+		$result = _ImageSearchArea($image, 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $tolerance, 0)
+		$endTime = TimerDiff($startTime)
+
+		If $result > 0 Then
+
+			Return 1
+		EndIf
+
+	Until $endTime > $timeout
+
 	Return $result
 EndFunc   ;==>_detectImage
 
