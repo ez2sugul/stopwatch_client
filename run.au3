@@ -67,6 +67,15 @@ Func main()
 		Next
 
 		If $bFoundAny = 0 Then
+			Local $bSwipe = AssocArrayGet($env, "app.swipe")
+
+			If @error Then
+				_Log("app.swipe not found")
+			Else
+				If $bSwipe = 1 Then
+					_slideScreen($env, 1)
+				EndIf
+			EndIf
 			; coundn't find any apps
 			; connection might be lost
 			_reconnect($env)
