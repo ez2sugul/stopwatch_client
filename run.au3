@@ -67,6 +67,15 @@ Func main()
 		Next
 
 		If $bFoundAny = 0 Then
+			Local $bSwipe = AssocArrayGet($env, "app.swipe")
+
+			If @error Then
+				_Log("app.swipe not found")
+			Else
+				If $bSwipe = 1 Then
+					_slideScreen($env, 1)
+				EndIf
+			EndIf
 			; coundn't find any apps
 			; connection might be lost
 			_reconnect($env)
@@ -604,7 +613,7 @@ Func _detectImageVanishing($env, $props, $app_key, $vanishingImage, $expectedIma
 				EndIf
 
 				If _Timeout($startTime, $timeout) == 1 Then
-					_Log("Timeout " & $result)
+					_Log("vanishing image was not vanished " & $result)
 					; if endTime is less than 0, it means any images were not detected.
 					; so set endTime as timeout and return 0 as an error
 					If $endTime < 0 Then
