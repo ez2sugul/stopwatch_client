@@ -427,8 +427,7 @@ Func _clickImage($image, $waitSecs, $aRect)
 	$result = _WaitForImageSearchWithoutSleep($image, $waitSecs, $aRect, $x, $y, $tolerance, $startTime, $endTime, 0)
 
 	If $result = 1 Then
-		MouseMove($x, $y)
-		MouseClick("left")
+		MouseClick("left", $x, $y, 1, 3)
 		Return 1
 	EndIf
 
