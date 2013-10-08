@@ -83,14 +83,14 @@ Func _reconnect($env)
 	Local $aRect = WinGetPos($hWnd)
 	Local $imgPath = @ScriptDir & AssocArrayGet($env, "app.img.path")
 
-	_clickImage($imgPath & "\" & "device" & "\" & "reconnect_mobizen.png", 1, $aRect)
+	_clickImage($imgPath & "\" & "device" & "\" & "reconnect_mobizen.png", "left", 1, $aRect)
 	Sleep(1000 * 30)
 	Send("{HOME}")
 	Send("{HOME}")
 	Sleep(1500)
 	Send("{HOME}")
-	_clickImage($imgPath & "\" & "device" & "\" & "screen_lock.png", 1, $aRect)
-	_clickImage($imgPath & "\" & "device" & "\" & "screen_lock_hover.png", 1, $aRect)
+	_clickImage($imgPath & "\" & "device" & "\" & "screen_lock.png", "left", 1, $aRect)
+	_clickImage($imgPath & "\" & "device" & "\" & "screen_lock_hover.png", "left", 1, $aRect)
 	Sleep(1000)
 EndFunc   ;==>_reconnect
 
@@ -184,11 +184,11 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	If StringInStr($os, "android", 0) > 0 Then
 		; android only
 		; tap on apps image
-		_clickImage($imgPath & "\" & "device" & "\" & "apps.png", 500, $aRect)
+		_clickImage($imgPath & "\" & "device" & "\" & "apps.png", "left", 500, $aRect)
 		Sleep(1000)
 	EndIf
 
-	Local $result = _clickImage($imgPath & "\" & $app_key & "\" & $appIcon, 500, $aRect)
+	Local $result = _clickImage($imgPath & "\" & $app_key & "\" & $appIcon, "left", 500, $aRect)
 
 	If $result = 0 Then
 		; can not find app icon
@@ -301,7 +301,7 @@ Func _areThereAnyEventWindows($env, $props, $app_key)
 		Local $delay = $aAction[3]
 
 		If $action = "click" Then
-			If _clickImage(@ScriptDir & $imagePath & "\" & $app_key & "\" & $target, 0, $aRect) Then
+			If _clickImage(@ScriptDir & $imagePath & "\" & $app_key & "\" & $target, "left", 0, $aRect) Then
 				; sleep to wait for screen transition
 				; 0 millisecond can be assigned as minimum
 				Sleep($delay)
@@ -385,14 +385,14 @@ Func _noticeOperator($env, $wholeCount, $errorCount)
 	Local $hWnd = WinGetHandle(AssocArrayGet($env, "app.detecting.on"))
 	Local $aRect = WinGetPos($hWnd)
 
-	_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "/device/" & "sms.png", 1, $aRect)
+	_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "/device/" & "sms.png", "left", 1, $aRect)
 	Sleep(1000)
-	_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "/device/" & "write_sms.png", 1, $aRect)
+	_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "/device/" & "write_sms.png", "left", 1, $aRect)
 	Sleep(100)
 	Send("01020119386")
 EndFunc   ;==>_noticeOperator
 
-Func _clickImage($image, $waitSecs, $aRect)
+Func _clickImage($image, $method, $waitSecs, $aRect)
 	Local $result
 	Local $startTime
 	Local $endTime
@@ -403,7 +403,7 @@ Func _clickImage($image, $waitSecs, $aRect)
 	$result = _WaitForImageSearchWithoutSleep($image, $waitSecs, $aRect, $x, $y, $tolerance, $startTime, $endTime, 0)
 
 	If $result = 1 Then
-		MouseClick("left", $x, $y, 1, 3)
+		MouseClick($method, $x, $y, 1, 3)
 		Return 1
 	EndIf
 
@@ -437,8 +437,18 @@ Func _slideScreen($env, $nDirection)
 	Local $app_detectingOn = AssocArrayGet($env, "app.detecting.on")
 	Local $hWnd = WinGetHandle($app_detectingOn)
 	Local $aRect = WinGetPos($hWnd)
+	Local $os = AssocArrayGet($env, "app.target.os")
 
-	_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\apps.png", 1, $aRect)
+	If StringInStr($os, "ios") > 0 Then
+		Local $lastScreen = "ios_last_screen.png"
+		Local $result = _WaitForImageSearchWithoutSleep(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & $lastScreen, 5, $aRect, $x, $y, 20, $startTime, $endTime, 0)
+		If $result = 0 Then
+			MouseClick("right", $x, $y, 1, 3)
+		EndIf
+		Return 0
+	EndIf
+
+	_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\apps.png", "left", 1, $aRect)
 	Sleep(1000)
 
 	If $nDirection = 1 Then
