@@ -16,25 +16,6 @@ Func main()
 	$oMyError = ObjEvent("AutoIt.Error", "MyErrFunc") ; Initialize a COM error handler
 	Local $env = _parse_app_section("env")
 
-	Local $sConnectionString = AssocArrayGet($env, "app.db.connection.string")
-	Local $sUser = AssocArrayGet($env, "app.db.user")
-	Local $sPasswd = AssocArrayGet($env, "app.db.passwd")
-	Local $sDbName = AssocArrayGet($env, "app.db.name")
-	Local $value = AssocArrayGet($env, "app.db.ip")
-	Local $sIP = AssocArrayGet($env, "app.db.ip")
-	Local $sTable = AssocArrayGet($env, "app.db.table")
-
-
-	;	$hConn = _MySQLConnect($sUser, $sPasswd, $sDbName, $sIP, $sConnectionString)
-
-	;	If $hConn = 0 Then
-	;		_Log("Connection Failed : " & @error)
-	;		Exit
-	;	Else
-	;		_Query($hConn, GetSQLUseDatabase($sDbName))
-	;		_Query($hConn, GetSQLCreateTable($sTable))
-	;	EndIf
-
 	Local $apps = _get_apps_to_go($env)
 	Local $nActivate = WinActivate(AssocArrayGet($env, "app.detecting.on"), "")
 	Local $iteration = 0
