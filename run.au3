@@ -31,7 +31,7 @@ Func main()
 
 		$bFoundAny = 0
 
-		_terminateApp()
+		_terminateApp($env)
 
 		For $one In $apps
 			_Log($one)
@@ -194,7 +194,7 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	If StringInStr($os, "android", 0) > 0 Then
 		; android only
 		; tap on apps image
-		_clickImage($imgPath & "\" & "device" & "\"	& "apps.png", 500, $aRect)
+		_clickImage($imgPath & "\" & "device" & "\" & "apps.png", 500, $aRect)
 		Sleep(1000)
 	EndIf
 
@@ -287,7 +287,7 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 		EndIf
 	EndIf
 
-	_terminateApp()
+	_terminateApp($env)
 
 	Return 1
 EndFunc   ;==>_start_app
@@ -479,14 +479,21 @@ Func _slideScreen($env, $nDirection)
 	Return 0
 EndFunc   ;==>_slideScreen
 
-Func _terminateApp()
-	For $i = 0 To 20
-		Send("{ESC}")
-		Sleep(200)
-	Next
+Func _terminateApp($env)
+	Local $os = AssocArrayGet($env, "app.target.os")
 
-	Send("{HOME}")
-	Sleep(700)
+	If StringInStr($os, "android") < 0 Then
+		For $i = 0 To 20
+			Send("{ESC}")
+			Sleep(200)
+		Next
+
+		Send("{HOME}")
+		Sleep(700)
+	ElseIf StringInStr($os, "ios") < 0 Then
+		MouseClick("right")
+	EndIf
+
 EndFunc   ;==>_terminateApp
 
 Func _clearMemory($env)
