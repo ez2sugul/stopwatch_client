@@ -185,14 +185,19 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	Local $aRect = WinGetPos($hWnd)
 	Local $imgPath = @ScriptDir & AssocArrayGet($env, "app.img.path")
 	Local $bUpdateServer = AssocArrayGet($env, "app.web.update")
+	Local $os = AssocArrayGet($env, "app.target.os")
 
 	; database fields
 	Local $aFields[9] = ["serviceName", "deviceName", "actionName", "actionDate", "startTime", "durationTime", "isError", "network", ""]
 	Local $aValues[UBound($aFields)] = [$app_key, AssocArrayGet($env, "app.target.device"), "", @YEAR & @MON & @MDAY & @HOUR & @MIN & @SEC, "", "", "", "", ""]
 
-	; tap on apps image
-	_clickImage($imgPath & "\" & "device" & "\" & "apps.png", 500, $aRect)
-	Sleep(1000)
+	If StringInStr($os, "android", 0) > 0 Then
+		; android only
+		; tap on apps image
+		_clickImage($imgPath & "\" & "device" & "\"	& "apps.png", 500, $aRect)
+		Sleep(1000)
+	EndIf
+
 	Local $result = _clickImage($imgPath & "\" & $app_key & "\" & $appIcon, 500, $aRect)
 
 	If $result = 0 Then
