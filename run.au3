@@ -43,34 +43,24 @@ Func main()
 				Sleep(AssocArrayGet($env, "app.interval.sec"))
 				$bFoundAny = 1
 			EndIf
-
-			;			Local $dbResult = _Query($hConn, GetErrorCount(AssocArrayGet($env, "app.db.table"), $one, AssocArrayGet($env, "app.target.device")))
 		Next
 
-		If $bFoundAny = 0 Then
-			Local $bSwipe = AssocArrayGet($env, "app.swipe")
+		Local $bSwipe = AssocArrayGet($env, "app.swipe")
 
-			If @error Then
-				_Log("app.swipe not found")
-			Else
-				If $bSwipe = 1 Then
-					_slideScreen($env, 1)
-				EndIf
+		If @error Then
+			_Log("app.swipe not found")
+		Else
+			If $bSwipe = 1 Then
+				_slideScreen($env, 1)
 			EndIf
+		EndIf
+
+		If $bFoundAny = 0 Then
 			; coundn't find any apps
 			; connection might be lost
 			_reconnect($env)
-
 		Else
-			Local $bSwipe = AssocArrayGet($env, "app.swipe")
 
-			If @error Then
-				_Log("app.swipe not found")
-			Else
-				If $bSwipe = 1 Then
-					_slideScreen($env, 1)
-				EndIf
-			EndIf
 		EndIf
 
 		$iteration += 1
