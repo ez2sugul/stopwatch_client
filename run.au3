@@ -20,7 +20,9 @@ Func main()
 	Local $nActivate = WinActivate(AssocArrayGet($env, "app.detecting.on"), "")
 	Local $iteration = 0
 	Local $primeStartTime = TimerInit()
-	Local $bFoundAny = 0
+	Local $nNotFound = 0
+
+	_terminateApp($env)
 
 	While 1
 		; count iteration
@@ -29,19 +31,17 @@ Func main()
 			Exit
 		EndIf
 
-		$bFoundAny = 0
-
-		_terminateApp($env)
-
 		For $one In $apps
 			_Log($one)
 
 			If _start_app($env, $hConn, $primeStartTime, $one) = 0 Then
 				; check failed
+				$nNotFound += 1
+				_Log("Not found count " & $nNotFound)
 			Else
-				_clearMemory($env)
+				$nNotFound = 0
+				_clearMemory($env, $one)
 				Sleep(AssocArrayGet($env, "app.interval.sec"))
-				$bFoundAny = 1
 			EndIf
 		Next
 
@@ -55,9 +55,10 @@ Func main()
 			EndIf
 		EndIf
 
-		If $bFoundAny = 0 Then
+		If $nNotFound > (UBound($apps) * 2) Then
 			; coundn't find any apps
 			; connection might be lost
+			$nNotFound = 0
 			_reconnect($env)
 		Else
 
@@ -79,20 +80,59 @@ EndFunc   ;==>MyErrFunc
 
 Func _reconnect($env)
 	_Log("trying reconnect")
+
+	Local $os = AssocArrayGet($env, "app.target.os")
 	Local $hWnd = WinGetHandle(AssocArrayGet($env, "app.detecting.on"))
 	Local $aRect = WinGetPos($hWnd)
 	Local $imgPath = @ScriptDir & AssocArrayGet($env, "app.img.path")
 
-	_clickImage($imgPath & "\" & "device" & "\" & "reconnect_mobizen.png", "left", 1, $aRect)
-	Sleep(1000 * 30)
-	Send("{HOME}")
-	Send("{HOME}")
-	Sleep(1500)
-	Send("{HOME}")
-	_clickImage($imgPath & "\" & "device" & "\" & "screen_lock.png", "left", 1, $aRect)
-	_clickImage($imgPath & "\" & "device" & "\" & "screen_lock_hover.png", "left", 1, $aRect)
-	Sleep(1000)
+	If StringInStr($os, "android") > 0 Then
+		_clickImage($imgPath & "\" & "device" & "\" & "reconnect_mobizen.png", "left", 1, $aRect)
+		Sleep(1000 * 30)
+		Send("{HOME}")
+		Send("{HOME}")
+		Sleep(1500)
+		Send("{HOME}")
+		_clickImage($imgPath & "\" & "device" & "\" & "screen_lock.png", "left", 1, $aRect)
+		_clickImage($imgPath & "\" & "device" & "\" & "screen_lock_hover.png", "left", 1, $aRect)
+		Sleep(1000)
+	ElseIf StringInStr($os, "ios") > 0 Then
+		MouseClick("right", $aRect[0] + 100, $aRect[1] + 100)
+		_Log("_reconnect right")
+		Sleep(2000)
+		Local $imgArray[2]
+		$imgArray[0] = "ios_slide_to_open_start.png"
+		$imgArray[1] = "ios_slide_to_open_end.png"
+		dragImage($env, $imgArray)
+
+		iosHomeScreen($env)
+	EndIf
 EndFunc   ;==>_reconnect
+
+; go to home screen of iPhone
+Func iosHomeScreen($env)
+	Local $os = AssocArrayGet($env, "app.target.os")
+	Local $hWnd = WinGetHandle(AssocArrayGet($env, "app.detecting.on"))
+	Local $aRect = WinGetPos($hWnd)
+	Local $imgPath = @ScriptDir & AssocArrayGet($env, "app.img.path")
+	Local $callImg = "ios_call.png"
+	Local $pivot = "ios_pivot.png"
+	Local $searchScreen = "ios_search_screen.png"
+	Local $x, $y, $startTime, $endTime
+	MouseClick("right", $aRect[0] + 100, $aRect[1] + 100)
+	_Log("ioshome right")
+	Sleep(1000)
+
+	While _WaitForImageSearchWithoutSleep($imgPath & "/" & "device" & "/" & $pivot, 2000, $aRect, $x, $y, 20, $startTime, $endTime) = 0
+		MouseClick("right", $aRect[0] + 100, $aRect[1] + 100)
+	WEnd
+
+	If _WaitForImageSearchWithoutSleep($imgPath & "/" & "device" & "/" & $searchScreen, 3000, $aRect, $x, $y, 20, $startTime, $endTime, 0) = 1 Then
+		MouseClick("right", $aRect[0] + 100, $aRect[1] + 100)
+	EndIf
+
+	Sleep(2000)
+EndFunc   ;==>iosHomeScreen
 
 
 Func _remainedIteration($env, $iteration)
@@ -428,6 +468,31 @@ Func _mouseMove($image, $waitSecs, $aRect)
 	Return 0
 EndFunc   ;==>_mouseMove
 
+Func dragImage($env, $imgArray)
+	Local $app_detectingOn = AssocArrayGet($env, "app.detecting.on")
+	Local $hWnd = WinGetHandle($app_detectingOn)
+	Local $aRect = WinGetPos($hWnd)
+	Local $x, $y
+	Local $startTime, $endTime
+	Local $coord[2][2]
+
+	For $i = 0 To UBound($imgArray) - 1
+		Local $searchResult = _WaitForImageSearchWithoutSleep(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & $imgArray[$i], 5, $aRect, $x, $y, 20, $startTime, $endTime, 0)
+
+		If $searchResult > 0 Then
+			Local $tempArr[2] = [$x, $y]
+			$coord[$i][0] = $x
+			$coord[$i][1] = $y
+		Else
+			SetError(1)
+			Return 1
+		EndIf
+	Next
+
+	MouseMove($coord[0][0], $coord[0][1])
+	MouseClickDrag("left", $coord[0][0], $coord[0][1], $coord[1][0], $coord[1][1], 5)
+EndFunc   ;==>dragImage
+
 Func _slideScreen($env, $nDirection)
 	_Log("SlideScreen")
 	Local $x, $y
@@ -473,10 +538,10 @@ Func _slideScreen($env, $nDirection)
 
 	If StringInStr($os, "ios") > 0 Then
 		Local $lastScreen = "ios_last_screen.png"
-		Local $result = _WaitForImageSearchWithoutSleep(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" &"ios_last_screen_temp.png", 5, $aRect, $x, $y, 20, $startTime, $endTime, 0)
+		Local $result = _WaitForImageSearchWithoutSleep(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & "ios_last_screen_temp.png", 5, $aRect, $x, $y, 20, $startTime, $endTime, 0)
 		If $result > 0 Then
-			_Log("found")
 			_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & $lastScreen, "right", 500, $aRect)
+			Sleep(2000)
 		EndIf
 		Return 0
 	EndIf
@@ -488,7 +553,7 @@ EndFunc   ;==>_slideScreen
 Func _terminateApp($env)
 	Local $os = AssocArrayGet($env, "app.target.os")
 
-	If StringInStr($os, "android") < 0 Then
+	If StringInStr($os, "android") > 0 Then
 		For $i = 0 To 20
 			Send("{ESC}")
 			Sleep(200)
@@ -496,31 +561,55 @@ Func _terminateApp($env)
 
 		Send("{HOME}")
 		Sleep(700)
-	ElseIf StringInStr($os, "ios") < 0 Then
-		MouseClick("right")
+	ElseIf StringInStr($os, "ios") > 0 Then
+		Local $app_detectingOn = AssocArrayGet($env, "app.detecting.on")
+		Local $hWnd = WinGetHandle($app_detectingOn)
+		Local $aRect = WinGetPos($hWnd)
+		MouseClick("right", $aRect[0] + 100, $aRect[1] + 100)
+		Sleep(2000)
 	EndIf
 
 EndFunc   ;==>_terminateApp
 
-Func _clearMemory($env)
+Func _clearMemory($env, $app)
 	Local $trashImg = @ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & "trash.png"
 	Local $app_detectingOn = AssocArrayGet($env, "app.detecting.on")
 	Local $hWnd = WinGetHandle($app_detectingOn)
 	Local $aRect = WinGetPos($hWnd)
 	Local $x, $y, $startTime, $endTime
+	Local $os = AssocArrayGet($env, "app.target.os")
+	Local $appIcon = @ScriptDir & AssocArrayGet($env, "app.img.path") & "\" & $app & "\" & "app_icon.png"
 
-	Send("{home down}")
-	Sleep(2000)
-	Send("{home up}")
+	If StringInStr($os, "android") > 0 Then
+		Send("{home down}")
+		Sleep(2000)
+		Send("{home up}")
 
-	Local $searchResult = _WaitForImageSearchWithoutSleep($trashImg, 3, $aRect, $x, $y, 90, $startTime, $endTime, 0)
+		Local $searchResult = _WaitForImageSearchWithoutSleep($trashImg, 500, $aRect, $x, $y, 90, $startTime, $endTime, 0)
 
-	If $searchResult == 1 Then
-		MouseMove($x, $y)
-		MouseClick("left")
-		Sleep(500)
-	Else
-		Send("{ESC}")
+		If $searchResult == 1 Then
+			MouseMove($x, $y)
+			MouseClick("left")
+			Sleep(500)
+		Else
+			Send("{ESC}")
+		EndIf
+	ElseIf StringInStr($os, "ios") > 0 Then
+		MouseClick("right", $aRect[0] + 100, $aRect[1] + 100, 2)
+		Sleep(2000)
+		Local $searchResult = _WaitForImageSearchWithoutSleep($appIcon, 3000, $aRect, $x, $y, 90, $startTime, $endTime, 0)
+		If $searchResult = 1 Then
+			; found background process that should be killed
+			MouseMove($x, $y, 3)
+			MouseDown("left")
+			Sleep(2000)
+			While _WaitForImageSearchWithoutSleep($trashImg, 5000, $aRect, $x, $y, 100, $startTime, $endTime, 0) = 1
+				MouseClick("left", $x, $y, 1, 5)
+			WEnd
+		EndIf
+
+		MouseClick("right", $aRect[0] + 100, $aRect[1] + 100, 2)
+		Sleep(2000)
 	EndIf
 
 EndFunc   ;==>_clearMemory
