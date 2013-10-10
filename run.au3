@@ -439,17 +439,12 @@ Func _slideScreen($env, $nDirection)
 	Local $aRect = WinGetPos($hWnd)
 	Local $os = AssocArrayGet($env, "app.target.os")
 
-	If StringInStr($os, "ios") > 0 Then
-		Local $lastScreen = "ios_last_screen.png"
-		Local $result = _WaitForImageSearchWithoutSleep(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & $lastScreen, 5, $aRect, $x, $y, 20, $startTime, $endTime, 0)
-		If $result = 0 Then
-			MouseClick("right", $x, $y, 1, 3)
-		EndIf
-		Return 0
+	If StringInStr($os, "android") > 0 Then
+		_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\apps.png", "left", 1, $aRect)
+		Sleep(1000)
+	ElseIf StringInStr($os, "ios") > 0 Then
+		_CaptureWindow("", @ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\", "ios_last_screen_temp.png")
 	EndIf
-
-	_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\apps.png", "left", 1, $aRect)
-	Sleep(1000)
 
 	If $nDirection = 1 Then
 		$imgArray[1] = "left_of_the_screen.png"
@@ -475,6 +470,17 @@ Func _slideScreen($env, $nDirection)
 	MouseMove($coord[0][0], $coord[0][1])
 	MouseClickDrag("left", $coord[0][0], $coord[0][1], $coord[1][0], $coord[1][1], 100)
 	Sleep(3000)
+
+	If StringInStr($os, "ios") > 0 Then
+		Local $lastScreen = "ios_last_screen.png"
+		Local $result = _WaitForImageSearchWithoutSleep(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" &"ios_last_screen_temp.png", 5, $aRect, $x, $y, 20, $startTime, $endTime, 0)
+		If $result > 0 Then
+			_Log("found")
+			_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & $lastScreen, "right", 500, $aRect)
+		EndIf
+		Return 0
+	EndIf
+
 
 	Return 0
 EndFunc   ;==>_slideScreen
