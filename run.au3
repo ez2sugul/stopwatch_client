@@ -87,14 +87,14 @@ Func _reconnect($env)
 	Local $imgPath = @ScriptDir & AssocArrayGet($env, "app.img.path")
 
 	If StringInStr($os, "android") > 0 Then
-		_clickImage($imgPath & "\" & "device" & "\" & "reconnect_mobizen.png", "left", 1, $aRect)
+		_clickImage($imgPath & "\" & "device" & "\" & "reconnect_mobizen.png", 80, "left", 1, $aRect)
 		Sleep(1000 * 30)
 		Send("{HOME}")
 		Send("{HOME}")
 		Sleep(1500)
 		Send("{HOME}")
-		_clickImage($imgPath & "\" & "device" & "\" & "screen_lock.png", "left", 1, $aRect)
-		_clickImage($imgPath & "\" & "device" & "\" & "screen_lock_hover.png", "left", 1, $aRect)
+		_clickImage($imgPath & "\" & "device" & "\" & "screen_lock.png", 80, "left", 1, $aRect)
+		_clickImage($imgPath & "\" & "device" & "\" & "screen_lock_hover.png", 80, "left", 1, $aRect)
 		Sleep(1000)
 	ElseIf StringInStr($os, "ios") > 0 Then
 		MouseClick("right", $aRect[0] + 100, $aRect[1] + 100)
@@ -209,6 +209,9 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	Local $props = _parse_app_section($app_key)
 	Local $app_type = AssocArrayGet($props, "app.define.type")
 	Local $appIcon = AssocArrayGet($props, "app.icon")
+	Local $aIcon = StringSplit($appIcon, ":")
+	Local $appIcon = $aIcon[1]
+	Local $appIconTolerance = $aIcon[2]
 	Local $startTime
 	Local $endTime = -1
 	Local $hWnd = WinGetHandle(AssocArrayGet($env, "app.detecting.on"))
@@ -224,11 +227,11 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	If StringInStr($os, "android", 0) > 0 Then
 		; android only
 		; tap on apps image
-		_clickImage($imgPath & "\" & "device" & "\" & "apps.png", "left", 500, $aRect)
+		_clickImage($imgPath & "\" & "device" & "\" & "apps.png", 80, "left", 500, $aRect)
 		Sleep(1000)
 	EndIf
 
-	Local $result = _clickImage($imgPath & "\" & $app_key & "\" & $appIcon, "left", 500, $aRect)
+	Local $result = _clickImage($imgPath & "\" & $app_key & "\" & $appIcon, $appIconTolerance, "left", 500, $aRect)
 
 	If $result = 0 Then
 		; can not find app icon
@@ -238,7 +241,10 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 	Select
 		Case $app_type == "simple"
 			Local $image = AssocArrayGet($props, "app.loading.done")
-			$result = _detectImage($env, $props, $app_key, $imgPath & "\" & $app_key & "\" & $image, $aRect, 15000, $startTime, $endTime)
+			Local $aImage = StringSplit($image, ":")
+			Local $image = $aImage[1]
+			Local $tolerance = $aImage[2]
+			$result = _detectImage($env, $props, $app_key, $imgPath & "\" & $app_key & "\" & $image, $tolerance, $aRect, 15000, $startTime, $endTime)
 			$aValues[2] = $image
 			$aValues[4] = Ceiling(TimerDiff($primeStartTime))
 			$aValues[5] = Ceiling($endTime)
@@ -250,8 +256,14 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 
 		Case $app_type == "vanish"
 			Local $vanishingImage = AssocArrayGet($props, "app.vanish")
+			Local $aVanish = StringSplit($vanishingImage, ":")
+			Local $vanishingImage = $aVanish[1]
+			Local $vanishTolerance = $aVanish[2]
 			Local $expectedImage = AssocArrayGet($props, "app.loading.done")
-			$result = _detectImageVanishing($env, $props, $app_key, $imgPath & "\" & $app_key & "\" & $vanishingImage, $imgPath & "\" & $app_key & "\" & $expectedImage, $aRect, 15000, $startTime, $endTime)
+			Local $aExpected = StringSplit($expectedImage, ":")
+			Local $expectedImage = $aExpected[1]
+			Local $expectedTolerance = $aExpected[2]
+			$result = _detectImageVanishing($env, $props, $app_key, $imgPath & "\" & $app_key & "\" & $vanishingImage, $vanishTolerance, $imgPath & "\" & $app_key & "\" & $expectedImage, $expectedTolerance, $aRect, 15000, $startTime, $endTime)
 			$aValues[2] = $vanishingImage
 			$aValues[4] = Ceiling(TimerDiff($primeStartTime))
 			$aValues[5] = Ceiling($endTime)
@@ -337,11 +349,12 @@ Func _areThereAnyEventWindows($env, $props, $app_key)
 	For $i = 1 To $aEvent[0]
 		Local $aAction = StringSplit($aEvent[$i], ":")
 		Local $target = $aAction[1]
-		Local $action = $aAction[2]
-		Local $delay = $aAction[3]
+		Local $tolerance = $aAction[2]
+		Local $action = $aAction[3]
+		Local $delay = $aAction[4]
 
 		If $action = "click" Then
-			If _clickImage(@ScriptDir & $imagePath & "\" & $app_key & "\" & $target, "left", 0, $aRect) Then
+			If _clickImage(@ScriptDir & $imagePath & "\" & $app_key & "\" & $target, $tolerance, "left", 0, $aRect) Then
 				; sleep to wait for screen transition
 				; 0 millisecond can be assigned as minimum
 				Sleep($delay)
@@ -425,18 +438,17 @@ Func _noticeOperator($env, $wholeCount, $errorCount)
 	Local $hWnd = WinGetHandle(AssocArrayGet($env, "app.detecting.on"))
 	Local $aRect = WinGetPos($hWnd)
 
-	_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "/device/" & "sms.png", "left", 1, $aRect)
+	_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "/device/" & "sms.png", 80, "left", 1, $aRect)
 	Sleep(1000)
-	_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "/device/" & "write_sms.png", "left", 1, $aRect)
+	_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "/device/" & "write_sms.png", 80, "left", 1, $aRect)
 	Sleep(100)
 	Send("01020119386")
 EndFunc   ;==>_noticeOperator
 
-Func _clickImage($image, $method, $waitSecs, $aRect)
+Func _clickImage($image, $tolerance, $method, $waitSecs, $aRect)
 	Local $result
 	Local $startTime
 	Local $endTime
-	Local $tolerance = 80
 	Local $x = 0
 	Local $y = 0
 
@@ -505,7 +517,7 @@ Func _slideScreen($env, $nDirection)
 	Local $os = AssocArrayGet($env, "app.target.os")
 
 	If StringInStr($os, "android") > 0 Then
-		_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\apps.png", "left", 1, $aRect)
+		_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\apps.png", 80, "left", 1, $aRect)
 		Sleep(1000)
 	ElseIf StringInStr($os, "ios") > 0 Then
 		_CaptureWindow("", @ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\", "ios_last_screen_temp.png")
@@ -540,7 +552,7 @@ Func _slideScreen($env, $nDirection)
 		Local $lastScreen = "ios_last_screen.png"
 		Local $result = _WaitForImageSearchWithoutSleep(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & "ios_last_screen_temp.png", 5, $aRect, $x, $y, 20, $startTime, $endTime, 0)
 		If $result > 0 Then
-			_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & $lastScreen, "right", 500, $aRect)
+			_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & $lastScreen, 80, "right", 500, $aRect)
 			Sleep(2000)
 		EndIf
 		Return 0
@@ -669,7 +681,7 @@ Func _Timeout($start, $timeout)
 	Return 0
 EndFunc   ;==>_Timeout
 
-Func _detectImageVanishing($env, $props, $app_key, $vanishingImage, $expectedImage, $aRect, $timeout, ByRef $startTime, ByRef $endTime)
+Func _detectImageVanishing($env, $props, $app_key, $vanishingImage, $vanishTolerance, $expectedImage, $expectedTolerance, $aRect, $timeout, ByRef $startTime, ByRef $endTime)
 	Local $result
 	Local $tolerance = 70
 	Local $x = 0
@@ -681,17 +693,17 @@ Func _detectImageVanishing($env, $props, $app_key, $vanishingImage, $expectedIma
 		_areThereAnyEventWindows($env, $props, $app_key)
 		; 사라지는 이미지 탐지
 		; timeout 0으로 대기 시간 없이 탐지 실패시 즉시 리턴
-		$result = _ImageSearchArea($vanishingImage, 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $tolerance, 0)
+		$result = _ImageSearchArea($vanishingImage, 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $vanishTolerance, 0)
 
 		If $result == 1 Then
 			; 사라지는 이미지 탐지 성공
 			_Log("vanishing image was detected")
 			While 1
-				$result = _ImageSearchArea($vanishingImage, 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $tolerance, 0)
+				$result = _ImageSearchArea($vanishingImage, 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $vanishTolerance, 0)
 				If $result == 0 Then
 					; 이미지가 사라졌음
 					_Log("image was vanished")
-					$result = _ImageSearchArea($expectedImage, 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $tolerance, 0)
+					$result = _ImageSearchArea($expectedImage, 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $expectedTolerance, 0)
 					If $result = 1 Then
 						$endTime = TimerDiff($startTime)
 						_Log("Expected Image was found at " & $endTime)
@@ -714,7 +726,7 @@ Func _detectImageVanishing($env, $props, $app_key, $vanishingImage, $expectedIma
 		ElseIf $result == 0 Then
 			; 사라지는 이미지 탐지 실패
 			; 고정적으로 위치한 이미지 탐지
-			$result = _ImageSearchArea($expectedImage, 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $tolerance, 0)
+			$result = _ImageSearchArea($expectedImage, 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $expectedTolerance, 0)
 
 			If $result = 1 Then
 				; 고정적으로 위치한 이미지 탐지 성공
@@ -747,9 +759,8 @@ Func _detectImageVanishing($env, $props, $app_key, $vanishingImage, $expectedIma
 
 EndFunc   ;==>_detectImageVanishing
 
-Func _detectImage($env, $props, $app_key, $image, $aRect, $timeout, ByRef $startTime, ByRef $endTime)
+Func _detectImage($env, $props, $app_key, $image, $tolerance, $aRect, $timeout, ByRef $startTime, ByRef $endTime)
 	Local $x, $y
-	Local $tolerance = 70
 
 	$startTime = TimerInit()
 	$endTime = TimerDiff($startTime)
