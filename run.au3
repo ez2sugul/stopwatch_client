@@ -550,7 +550,7 @@ Func _slideScreen($env, $nDirection)
 		Local $lastScreen = "ios_last_screen.png"
 		Local $result = _WaitForImageSearchWithoutSleep(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & "ios_last_screen_temp.png", 5, $aRect, $x, $y, 20, $startTime, $endTime, 0)
 		If $result > 0 Then
-			_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & $lastScreen, 80, "right", 500, $aRect)
+			MouseClick("right", $aRect[0] + 100, $aRect[1] + 100)
 			Sleep(2000)
 		EndIf
 		Return 0
