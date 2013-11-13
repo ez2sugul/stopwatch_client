@@ -407,18 +407,18 @@ Func _networkStatus($env)
 	Local $aRect = WinGetPos($hWnd)
 
 
-	Local $result = _WaitForImagesSearchWithoutSleep($imgArray, 15000, $aRect, $x, $y, $tolerance, $startTime, $endTime, 0)
+	Local $result = _WaitForImagesSearchWithoutSleep($imgArray, 5000, $aRect, $x, $y, $tolerance, $startTime, $endTime, 0)
 
 	Select
 		Case $result == "0"
-			Return "unknown"
+			Return "lte"
 		Case $result == "1"
 			Return "lte"
 		Case $result == "2"
 			Return "cdma3g"
 	EndSelect
 
-	Return "unknown"
+	Return "lte"
 EndFunc   ;==>_networkStatus
 
 Func _noticeOperator($env, $wholeCount, $errorCount)
