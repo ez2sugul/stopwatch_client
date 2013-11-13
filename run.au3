@@ -115,12 +115,10 @@ Func iosHomeScreen($env)
 	Local $hWnd = WinGetHandle(AssocArrayGet($env, "app.detecting.on"))
 	Local $aRect = WinGetPos($hWnd)
 	Local $imgPath = @ScriptDir & AssocArrayGet($env, "app.img.path")
-	Local $callImg = "ios_call.png"
 	Local $pivot = "ios_pivot.png"
 	Local $searchScreen = "ios_search_screen.png"
 	Local $x, $y, $startTime, $endTime
 	MouseClick("right", $aRect[0] + 100, $aRect[1] + 100)
-	_Log("ioshome right")
 	Sleep(1000)
 
 	While _WaitForImageSearchWithoutSleep($imgPath & "/" & "device" & "/" & $pivot, 2000, $aRect, $x, $y, 20, $startTime, $endTime) = 0
