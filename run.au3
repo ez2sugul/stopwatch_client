@@ -272,7 +272,7 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 			EndIf
 	EndSelect
 
-	Local $network = _networkStatus($env)
+	Local $network = "lte"
 	$aValues[7] = $network
 
 	_Log($app_key & " " & $app_type & " " & $result & " " & $endTime & " " & $network)
@@ -411,14 +411,14 @@ Func _networkStatus($env)
 
 	Select
 		Case $result == "0"
-			Return "lte"
+			Return "unknown"
 		Case $result == "1"
 			Return "lte"
 		Case $result == "2"
 			Return "cdma3g"
 	EndSelect
 
-	Return "lte"
+	Return "unknown"
 EndFunc   ;==>_networkStatus
 
 Func _noticeOperator($env, $wholeCount, $errorCount)
