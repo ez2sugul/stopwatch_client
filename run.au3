@@ -589,6 +589,7 @@ Func _clearMemory($env, $app)
 	Local $x, $y, $startTime, $endTime
 	Local $os = AssocArrayGet($env, "app.target.os")
 	Local $appIcon = @ScriptDir & AssocArrayGet($env, "app.img.path") & "\" & $app & "\" & "app_icon.png"
+	Local $trashBackground = @ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & "trashBackground.png"
 
 	If StringInStr($os, "android") > 0 Then
 		Send("{home down}")
@@ -619,7 +620,11 @@ Func _clearMemory($env, $app)
 		EndIf
 
 		MouseClick("right", $aRect[0] + 100, $aRect[1] + 100, 2)
-		Sleep(2000)
+		Sleep(500)
+		If _WaitForImageSearchWithoutSleep($trashBackground, 3000, $aRect, $x, $y, 20, $startTime, $endTime, 0) = 1 Then
+			MouseClick("right", $aRect[0] + 100, $aRect[1] + 100, 2)
+			Sleep(500)
+		EndIf
 	EndIf
 
 EndFunc   ;==>_clearMemory
