@@ -590,6 +590,7 @@ Func _clearMemory($env, $app)
 	Local $os = AssocArrayGet($env, "app.target.os")
 	Local $appIcon = @ScriptDir & AssocArrayGet($env, "app.img.path") & "\" & $app & "\" & "app_icon.png"
 	Local $trashBackground = @ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & "trashBackground.png"
+	Local $callTransparent = @ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & "callTransparent.png"
 
 	If StringInStr($os, "android") > 0 Then
 		Send("{home down}")
@@ -608,21 +609,22 @@ Func _clearMemory($env, $app)
 	ElseIf StringInStr($os, "ios") > 0 Then
 		MouseClick("right", $aRect[0] + 100, $aRect[1] + 100, 2)
 		Sleep(2000)
-		Local $searchResult = _WaitForImageSearchWithoutSleep($appIcon, 3000, $aRect, $x, $y, 90, $startTime, $endTime, 0)
+		Local $searchResult = _WaitForImageSearchWithoutSleep($callTransparent, 3000, $aRect, $x, $y, 20, $startTime, $endTime, 0)
 		If $searchResult = 1 Then
 			; found background process that should be killed
-			MouseMove($x, $y, 3)
+			MouseMove($x, $y + 80, 3)
 			MouseDown("left")
 			Sleep(2000)
+			MouseUp("left")
 			While _WaitForImageSearchWithoutSleep($trashImg, 5000, $aRect, $x, $y, 100, $startTime, $endTime, 0) = 1
 				MouseClick("left", $x, $y, 1, 5)
 			WEnd
 		EndIf
 
-		MouseClick("right", $aRect[0] + 100, $aRect[1] + 100, 2)
+		MouseClick("right", $aRect[0] + 100, $aRect[1] + 100, 1)
 		Sleep(500)
 		If _WaitForImageSearchWithoutSleep($trashBackground, 3000, $aRect, $x, $y, 20, $startTime, $endTime, 0) = 1 Then
-			MouseClick("right", $aRect[0] + 100, $aRect[1] + 100, 2)
+			MouseClick("right", $aRect[0] + 100, $aRect[1] + 100, 1)
 			Sleep(500)
 		EndIf
 	EndIf
