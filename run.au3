@@ -593,9 +593,8 @@ Func _clearMemory($env, $app)
 	Local $callTransparent = @ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & "callTransparent.png"
 
 	If StringInStr($os, "android") > 0 Then
-		Send("{home down}")
-		Sleep(2000)
-		Send("{home up}")
+		_Send("{home down}", 2000)
+		_Send("{home up}", 0)
 
 		Local $searchResult = _WaitForImageSearchWithoutSleep($trashImg, 500, $aRect, $x, $y, 90, $startTime, $endTime, 0)
 
@@ -850,3 +849,10 @@ Func Cleanup()
 	DllCallbackFree($hStub_KeyProc)
 	_MySQLEnd($hConn)
 EndFunc   ;==>Cleanup
+
+Func _Send($text, $milliseconds)
+	$time = TimerInit()
+	Do
+		Send($text)
+	Until TimerDiff($time) > $milliseconds
+EndFunc   ;==>_Send
