@@ -320,7 +320,8 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 			If @error Then
 				_Log("app.output.path not found")
 			Else
-				_FileWriteLog(@ScriptDir & "\" & $app_key & ".txt", $aValues[5], -1) ; Write to the logfile passing the filehandle returned by FileOpen.
+				DirCreate($sOutputPath)
+				_FileWriteLog($sOutputPath & "\" & $app_key & ".txt", $aValues[5], -1) ; Write to the logfile passing the filehandle returned by FileOpen.
 			EndIf
 		Else
 			_Log("skip output")
