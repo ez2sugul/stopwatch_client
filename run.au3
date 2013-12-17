@@ -294,7 +294,7 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 
 	If StringIsDigit($requestResult) = 1 Then
 		; inserting record success.
-		$sCaptureFileName &= "_" & $requestResult
+		$sCaptureFileName &= "_" & $requestResult & "_" & AssocArrayGet($env, "app.target.device")
 	EndIf
 
 	_CaptureWindow("", $capturePath, $sCaptureFileName & ".bmp")
