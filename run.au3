@@ -4,6 +4,7 @@
 #include <ScreenCapture.au3>
 #include "HttpRequest.au3"
 #include <File.au3>
+#include "SendMail.au3"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Func main()
@@ -140,7 +141,7 @@ Func _remainedIteration($env, $iteration)
 		Return 1
 	EndIf
 
-	If $confIteration < $iteration Then
+	If $iteration <= $confIteration Then
 		_Log($confIteration & ", " & $iteration)
 		Return 0
 	EndIf
@@ -315,14 +316,7 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 		_Log("app.output not found")
 	Else
 		If $bOutput = 1 Then
-			Local $sOutputPath = AssocArrayGet($env, "app.output.path")
-
-			If @error Then
-				_Log("app.output.path not found")
-			Else
-				DirCreate($sOutputPath)
-				_FileWriteLog($sOutputPath & "\" & $app_key & ".txt", $aValues[5], -1) ; Write to the logfile passing the filehandle returned by FileOpen.
-			EndIf
+			WriteToOutputFile($env, $app_key, $aValues[5])
 		Else
 			_Log("skip output")
 		EndIf
@@ -332,6 +326,17 @@ Func _start_app($env, $hConn, $primeStartTime, $app_key)
 
 	Return 1
 EndFunc   ;==>_start_app
+
+Func WriteToOutputFile($env, $app_key, $value)
+	Local $sOutputPath = AssocArrayGet($env, "app.output.path")
+
+	If @error Then
+		_Log("app.output.path not found")
+	Else
+		DirCreate($sOutputPath)
+		_FileWriteLog($sOutputPath & "\" & $app_key & ".txt", $value, -1) ; Write to the logfile passing the filehandle returned by FileOpen.
+	EndIf
+EndFunc   ;==>WriteToOutputFile
 
 Func _areThereAnyEventWindows($env, $props, $app_key)
 	Local $eventString = AssocArrayGet($props, "app.event")
