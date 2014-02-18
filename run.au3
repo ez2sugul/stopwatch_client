@@ -5,6 +5,7 @@
 #include "HttpRequest.au3"
 #include <File.au3>
 #include "SendMail.au3"
+#include "Statistic.au3"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Func main()
