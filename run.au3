@@ -200,7 +200,7 @@ Func _remainedIteration($env, $iteration)
 		Return 1
 	EndIf
 
-	If $iteration <= $confIteration Then
+	If $iteration >= $confIteration Then
 		_Log($confIteration & ", " & $iteration)
 		Return 0
 	EndIf
