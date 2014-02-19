@@ -76,6 +76,7 @@ Func main()
 EndFunc   ;==>main
 
 Func SendMailForResult($env, $apps)
+	Local $device = AssocArrayGet($env, "app.target.device")
 	Local $outputPath = AssocArrayGet($env, "app.output.path")
 	Local $server = AssocArrayGet($env, "app.mail.server")
 	Local $port = AssocArrayGet($env, "app.mail.port")
@@ -119,7 +120,7 @@ Func SendMailForResult($env, $apps)
 
 		; formatting mail contents
 		Local $subject =  "[StopWatch] " & $app & " result at " & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC
-		Local $body = "Count : " & $outputArr[0] & "<BR>" & "Average : " & $average & "<BR>" & "90th Percentile : " & $percentile & "<BR>"
+		Local $body = "Device : " & $device & "<BR>" & "Count : " & $outputArr[0] & "<BR>" & "Average : " & $average & "<BR>" & "90th Percentile : " & $percentile & "<BR>"
 
 		_Log("sending mail for result of " & $app & " to " & $mailTo)
 
