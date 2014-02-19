@@ -30,7 +30,7 @@ Func main()
 		; count iteration
 		; if there is no iteration to go then exit
 		If _remainedIteration($env, $iteration) = 0 Then
-			Exit
+			ExitLoop
 		EndIf
 
 		For $one In $apps
@@ -70,7 +70,64 @@ Func main()
 		_Log("Iteration [" & $iteration & "]")
 
 	WEnd
+
+	; Sending mail for statistic when stopwatch done.
+	SendMailForResult($env, $apps)
 EndFunc   ;==>main
+
+Func SendMailForResult($env, $apps)
+	Local $outputPath = AssocArrayGet($env, "app.output.path")
+	Local $server = AssocArrayGet($env, "app.mail.server")
+	Local $port = AssocArrayGet($env, "app.mail.port")
+	Local $from = AssocArrayGet($env, "app.mail.from")
+	Local $user = AssocArrayGet($env, "app.mail.user")
+	Local $password = AssocArrayGet($env, "app.mail.password")
+	Local $attachFiles = ""
+	Local $ccAddr = ""
+	Local $bccAddr = ""
+	Local $importance = ""
+	Local $ssl = 1
+
+	If @error Then
+		_Log("app.mail.password not found")
+		Return 0
+	EndIf
+
+	For $app In $apps
+		Local $prop = _parse_app_section($app)
+		Local $mailTo = AssocArrayGet($prop, "app.mail.to")
+
+		If @error Then
+			_Log("app.mail.to not found")
+			ContinueLoop
+		EndIf
+
+		If $mailTo = "" Then
+			ContinueLoop
+		EndIf
+
+		; calculating average and percentile
+		Local $outputArr = GetArrayFromOutput($outputPath & "\" & $app & ".txt")
+
+		If $outputArr = -1 Then
+			_Log($outputPath & "\" & $app & ".txt" & " doesn't exist")
+			ContinueLoop
+		EndIf
+
+		Local $average = GetAverage($outputArr)
+		Local $percentile = GetPercentile($outputArr, 0.9)
+
+		; formatting mail contents
+		Local $subject =  "[StopWatch] " & $app & " result at " & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC
+		Local $body = "Count : " & $outputArr[0] & "<BR>" & "Average : " & $average & "<BR>" & "90th Percentile : " & $percentile & "<BR>"
+
+		_Log("sending mail for result of " & $app & " to " & $mailTo)
+
+		Local $result = _INetSmtpMailCom($server, $from, $from, $mailTo, $subject, $body, $AttachFiles, $ccAddr, $bccAddr, $Importance, $user, $password, $port, $ssl)
+	Next
+
+	Return 1
+EndFunc   ;==>SendMailForResult
 
 ; This is my custom defined error handler
 Func MyErrFunc($oMyError)

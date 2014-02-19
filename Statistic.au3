@@ -47,7 +47,6 @@ Func GetPercentile($arr, $percentile)
 	Local $percentileValue = Round($count * $percentile)
 	_ArraySortNum($arr, 0, 1)
 	;_ArrayDisplay($arr)
-	ConsoleWrite($percentileValue & @CRLF)
 	Return Round($arr[$percentileValue], 3)
 EndFunc
 
