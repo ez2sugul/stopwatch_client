@@ -89,7 +89,7 @@ Func SendMailForResult($env, $apps)
 	Local $ssl = 1
 
 	If @error Then
-		_Log("app.mail.password not found")
+		_Log("mail info not found")
 		Return 0
 	EndIf
 
@@ -98,7 +98,7 @@ Func SendMailForResult($env, $apps)
 		Local $mailTo = AssocArrayGet($prop, "app.mail.to")
 
 		If @error Then
-			_Log("app.mail.to not found")
+			_Log($app & " app.mail.to not found")
 			ContinueLoop
 		EndIf
 
