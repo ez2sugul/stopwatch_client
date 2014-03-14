@@ -768,6 +768,7 @@ Func _detectImageVanishing($env, $props, $app_key, $vanishingImage, $vanishToler
 			; 사라지는 이미지 탐지 성공
 			_Log("vanishing image was detected")
 			While 1
+				_areThereAnyEventWindows($env, $props, $app_key)
 				$result = _ImageSearchArea($vanishingImage, 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $vanishTolerance, 0)
 				If $result == 0 Then
 					; 이미지가 사라졌음
