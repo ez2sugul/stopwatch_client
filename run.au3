@@ -24,7 +24,7 @@ Func main()
 	Local $primeStartTime = TimerInit()
 	Local $nNotFound = 0
 
-	_terminateApp($env)
+	;_terminateApp($env)
 
 	While 1
 		; count iteration
