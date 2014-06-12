@@ -578,14 +578,15 @@ Func _slideScreen($env, $nDirection)
 	Local $startTime, $endTime
 	Local $imgArray[2]
 	Local $coord[2][2]
-	Local $app_detectingOn = AssocArrayGet($env, "app.detecting.on")
-	Local $hWnd = WinGetHandle($app_detectingOn)
+	Local $hWnd = WinGetHandle(AssocArrayGet($env, "app.detecting.on"))
 	Local $aRect = WinGetPos($hWnd)
+	Local $imgPath = @ScriptDir & AssocArrayGet($env, "app.img.path")
 	Local $os = AssocArrayGet($env, "app.target.os")
 
 	If StringInStr($os, "android") > 0 Then
-		_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\apps.png", 80, "left", 1, $aRect)
-		Sleep(2000)
+
+		_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\apps.png", 80, "left", 2000, $aRect)
+		Sleep(1000)
 	ElseIf StringInStr($os, "ios") > 0 Then
 		_CaptureWindow("", @ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\", "ios_last_screen_temp.png")
 	EndIf
