@@ -636,10 +636,10 @@ Func _terminateApp($env)
 	Local $os = AssocArrayGet($env, "app.target.os")
 
 	If StringInStr($os, "android") > 0 Then
-		For $i = 0 To 20
-			Send("{ESC}")
-			Sleep(200)
-		Next
+		;For $i = 0 To 20
+		;	Send("{ESC}")
+		;	Sleep(200)
+		;Next
 
 		Send("{HOME}")
 		Sleep(700)
