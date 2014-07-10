@@ -24,7 +24,7 @@ Func main()
 	Local $primeStartTime = TimerInit()
 	Local $nNotFound = 0
 
-	_terminateApp($env)
+	;_terminateApp($env)
 
 	While 1
 		; count iteration
@@ -399,6 +399,7 @@ EndFunc   ;==>WriteToOutputFile
 
 Func _areThereAnyEventWindows($env, $props, $app_key)
 	Local $eventString = AssocArrayGet($props, "app.event")
+	Local $startTime = 0
 
 	If @error Then
 		Return -1
@@ -418,6 +419,9 @@ Func _areThereAnyEventWindows($env, $props, $app_key)
 
 		If $action = "click" Then
 			If _clickImage(@ScriptDir & $imagePath & "\" & $app_key & "\" & $target, $tolerance, "left", 0, $aRect) Then
+				If $target = "gotooffice.png" Then
+					$startTime = TimerInit()
+				EndIf
 				; sleep to wait for screen transition
 				; 0 millisecond can be assigned as minimum
 				Sleep($delay)
@@ -425,7 +429,7 @@ Func _areThereAnyEventWindows($env, $props, $app_key)
 		EndIf
 	Next
 
-	Return 0
+	Return $startTime
 EndFunc   ;==>_areThereAnyEventWindows
 
 Func RequestToServer($hosts, $query)
@@ -580,6 +584,7 @@ Func _slideScreen($env, $nDirection)
 	Local $os = AssocArrayGet($env, "app.target.os")
 
 	If StringInStr($os, "android") > 0 Then
+
 		_clickImage(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\apps.png", 80, "left", 2000, $aRect)
 		Sleep(1000)
 	ElseIf StringInStr($os, "ios") > 0 Then
@@ -595,7 +600,8 @@ Func _slideScreen($env, $nDirection)
 	EndIf
 
 	For $i = 0 To UBound($imgArray) - 1
-		Local $searchResult = _WaitForImageSearchWithoutSleep(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & $imgArray[$i], 5, $aRect, $x, $y, 20, $startTime, $endTime, 0)
+
+		Local $searchResult = _WaitForImageSearchWithoutSleep(@ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & $imgArray[$i], 2000, $aRect, $x, $y, 20, $startTime, $endTime, 0)
 
 		If $searchResult > 0 Then
 			Local $tempArr[2] = [$x, $y]
@@ -603,6 +609,7 @@ Func _slideScreen($env, $nDirection)
 			$coord[$i][1] = $y
 		Else
 			SetError(1)
+			_Log("can't find image to slide " & @ScriptDir & AssocArrayGet($env, "app.img.path") & "\device\" & $imgArray[$i])
 			Return 1
 		EndIf
 	Next
@@ -629,10 +636,10 @@ Func _terminateApp($env)
 	Local $os = AssocArrayGet($env, "app.target.os")
 
 	If StringInStr($os, "android") > 0 Then
-		For $i = 0 To 20
-			Send("{ESC}")
-			Sleep(200)
-		Next
+		;For $i = 0 To 20
+		;	Send("{ESC}")
+		;	Sleep(200)
+		;Next
 
 		Send("{HOME}")
 		Sleep(700)
@@ -836,7 +843,10 @@ Func _detectImage($env, $props, $app_key, $image, $tolerance, $aRect, $timeout, 
 	$endTime = TimerDiff($startTime)
 
 	Do
-		_areThereAnyEventWindows($env, $props, $app_key)
+		Local $result = _areThereAnyEventWindows($env, $props, $app_key)
+		If $result > 0 Then
+			$startTime = $result
+		EndIf
 
 		$result = _ImageSearchArea($image, 1, $aRect[0], $aRect[1], $aRect[0] + $aRect[2], $aRect[1] + $aRect[3], $x, $y, $tolerance, 0)
 		$endTime = TimerDiff($startTime)
