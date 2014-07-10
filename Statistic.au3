@@ -1,5 +1,6 @@
 #include <File.au3>
 #include "AUnit.au3"
+#include <Array.au3>
 
 Func GetArrayFromOutput($outputFile)
 	Local $hFile = FileOpen($outputFile)
